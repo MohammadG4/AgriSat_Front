@@ -6,7 +6,7 @@ import { Satellite, Shield, Cpu, Globe } from "lucide-react";
 
 export default function Footer() {
   const pathname = usePathname();
-  if (pathname === "/service") {
+  if (pathname?.startsWith("/service")) {
     return null;
   }
   return (

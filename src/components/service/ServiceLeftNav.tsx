@@ -10,9 +10,10 @@ import {
   TrendingUp,
   AlertTriangle,
   MapPin,
-  Sliders,
-  PlusCircle,
-  ExternalLink,
+  Plus,
+  SlidersHorizontal,
+  Bell,
+  ArrowRight,
 } from "lucide-react";
 import { Land } from "@/types/farm";
 import { AlertNotification } from "@/types/alert";
@@ -21,9 +22,11 @@ interface ServiceLeftNavProps {
   lands: Land[];
   selectedLand: Land | null;
   onSelectLand: (land: Land) => void;
-  onOpenTuneModal: (land: Land) => void;
-  onStartDraw: () => void;
+  onOpenOptionsModal: (land: Land) => void;
+  onOpenGlobalAlerts: () => void;
+  onNavigateToRegisterLand: () => void;
   activeAlerts: AlertNotification[];
+  totalAlertsCount: number;
   isLoggedIn: boolean;
 }
 
@@ -31,140 +34,196 @@ export default function ServiceLeftNav({
   lands,
   selectedLand,
   onSelectLand,
-  onOpenTuneModal,
-  onStartDraw,
+  onOpenOptionsModal,
+  onOpenGlobalAlerts,
+  onNavigateToRegisterLand,
   activeAlerts,
+  totalAlertsCount,
   isLoggedIn,
 }: ServiceLeftNavProps) {
   return (
     <aside className="service-sidebar">
-      <div>
-        {/* Header */}
-        <div className="sidebar-header">NABTA DASHBOARD LAYERS</div>
-
-        {/* Layers list */}
-        <div className="layers-list">
-          {/* Active: Health Map (NDVI) */}
-          <button
-            type="button"
-            className="layer-item active"
-            title="Crop Health NDVI (Active)"
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        {/* 1. TOP SECTION: FEATURES */}
+        <div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "14px",
+              paddingLeft: "6px",
+            }}
           >
-            <div className="layer-left">
-              <Activity size={18} />
-              <span>Health Map (NDVI)</span>
-            </div>
-            <span
+            <span className="sidebar-header" style={{ marginBottom: 0, paddingLeft: 0 }}>
+              Features
+            </span>
+
+            {/* Global Alerts Button */}
+            <button
+              type="button"
+              onClick={onOpenGlobalAlerts}
+              title="View System Alerts"
               style={{
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                backgroundColor: "#10B981",
-                boxShadow: "0 0 8px #10B981",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "4px 8px",
+                borderRadius: "6px",
+                backgroundColor: totalAlertsCount > 0 ? "rgba(245, 158, 11, 0.15)" : "rgba(255, 255, 255, 0.05)",
+                border: totalAlertsCount > 0 ? "1px solid rgba(245, 158, 11, 0.4)" : "1px solid rgba(255, 255, 255, 0.08)",
+                color: totalAlertsCount > 0 ? "#F59E0B" : "#94A3B8",
+                fontSize: "0.74rem",
+                fontWeight: 700,
+                cursor: "pointer",
               }}
-            />
-          </button>
-
-          {/* Disabled layers */}
-          <button type="button" className="layer-item disabled" disabled>
-            <div className="layer-left">
-              <Droplets size={18} />
-              <span>Water &amp; Soil Moisture</span>
-            </div>
-            <span className="layer-badge">Soon</span>
-          </button>
-
-          <button type="button" className="layer-item disabled" disabled>
-            <div className="layer-left">
-              <Sprout size={18} />
-              <span>Crop Classification</span>
-            </div>
-            <span className="layer-badge">Soon</span>
-          </button>
-
-          <button type="button" className="layer-item disabled" disabled>
-            <div className="layer-left">
-              <Thermometer size={18} />
-              <span>Heat Tracker (LST)</span>
-            </div>
-            <span className="layer-badge">Soon</span>
-          </button>
-
-          <button type="button" className="layer-item disabled" disabled>
-            <div className="layer-left">
-              <ShieldAlert size={18} />
-              <span>Pest &amp; Rust Risk</span>
-            </div>
-            <span className="layer-badge">Soon</span>
-          </button>
-
-          <button type="button" className="layer-item disabled" disabled>
-            <div className="layer-left">
-              <TrendingUp size={18} />
-              <span>Yield Forecast Map</span>
-            </div>
-            <span className="layer-badge">Soon</span>
-          </button>
-        </div>
-
-        {/* User's Lands Section */}
-        <div className="user-lands-section">
-          <div className="section-label">
-            <span>My Registered Lands ({lands.length})</span>
-            {isLoggedIn && (
-              <button
-                type="button"
-                onClick={onStartDraw}
-                title="Draw new land boundary"
-                style={{
-                  color: "#10B981",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  fontSize: "0.72rem",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                <PlusCircle size={14} />
-                <span>New</span>
-              </button>
-            )}
+            >
+              <Bell size={13} />
+              <span>Alerts</span>
+              {totalAlertsCount > 0 && (
+                <span
+                  style={{
+                    backgroundColor: "#F59E0B",
+                    color: "#0F172A",
+                    borderRadius: "10px",
+                    padding: "1px 5px",
+                    fontSize: "0.65rem",
+                    fontWeight: 800,
+                  }}
+                >
+                  {totalAlertsCount}
+                </span>
+              )}
+            </button>
           </div>
 
-          {!isLoggedIn ? (
-            <div
-              style={{
-                padding: "10px 12px",
-                borderRadius: "8px",
-                backgroundColor: "rgba(255, 255, 255, 0.03)",
-                fontSize: "0.78rem",
-                color: "#94A3B8",
-              }}
+          {/* Features Layer List */}
+          <div className="layers-list" style={{ marginBottom: 0 }}>
+            {/* Active: Health Map (NDVI) */}
+            <button
+              type="button"
+              className="layer-item active"
+              title="Crop Health NDVI (Active)"
             >
-              Sign in to save and manage land parcels with automated NDVI scenarios.
-            </div>
-          ) : lands.length === 0 ? (
-            <div
+              <div className="layer-left">
+                <Activity size={18} />
+                <span>Health Map (NDVI)</span>
+              </div>
+              <span
+                style={{
+                  width: "8px",
+                  height: "8px",
+                  borderRadius: "50%",
+                  backgroundColor: "#10B981",
+                  boxShadow: "0 0 8px #10B981",
+                }}
+              />
+            </button>
+
+            {/* Disabled Upcoming Features */}
+            <button type="button" className="layer-item disabled" disabled>
+              <div className="layer-left">
+                <Droplets size={18} />
+                <span>Water &amp; Soil Moisture</span>
+              </div>
+              <span className="layer-badge">Soon</span>
+            </button>
+
+            <button type="button" className="layer-item disabled" disabled>
+              <div className="layer-left">
+                <Sprout size={18} />
+                <span>Crop Classification</span>
+              </div>
+              <span className="layer-badge">Soon</span>
+            </button>
+
+            <button type="button" className="layer-item disabled" disabled>
+              <div className="layer-left">
+                <Thermometer size={18} />
+                <span>Heat Tracker (LST)</span>
+              </div>
+              <span className="layer-badge">Soon</span>
+            </button>
+
+            <button type="button" className="layer-item disabled" disabled>
+              <div className="layer-left">
+                <ShieldAlert size={18} />
+                <span>Pest &amp; Rust Risk</span>
+              </div>
+              <span className="layer-badge">Soon</span>
+            </button>
+
+            <button type="button" className="layer-item disabled" disabled>
+              <div className="layer-left">
+                <TrendingUp size={18} />
+                <span>Yield Forecast Map</span>
+              </div>
+              <span className="layer-badge">Soon</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 2. BOTTOM SECTION: REGISTERED LANDS */}
+        <div className="user-lands-section" style={{ marginTop: 0 }}>
+          <div className="section-label">
+            <span>Registered Lands ({lands.length})</span>
+            {/* The ONLY way to register a land is via this +New button */}
+            <button
+              type="button"
+              onClick={onNavigateToRegisterLand}
+              title="Open dedicated registration page"
               style={{
-                padding: "12px",
-                borderRadius: "8px",
-                backgroundColor: "rgba(255, 255, 255, 0.03)",
-                fontSize: "0.8rem",
-                color: "#94A3B8",
+                backgroundColor: "rgba(16, 185, 129, 0.15)",
+                border: "1px solid rgba(16, 185, 129, 0.35)",
+                color: "#10B981",
+                borderRadius: "6px",
+                padding: "3px 8px",
                 display: "flex",
-                flexDirection: "column",
-                gap: "8px",
+                alignItems: "center",
+                gap: "4px",
+                fontSize: "0.74rem",
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
               }}
             >
-              <span>No lands registered yet. Use the drawing tool on the map to define your first boundary.</span>
+              <Plus size={13} />
+              <span>New</span>
+            </button>
+          </div>
+
+          {/* Zero lands state: highly visible CTA */}
+          {lands.length === 0 ? (
+            <div className="zero-lands-cta">
+              <div
+                style={{
+                  width: "36px",
+                  height: "36px",
+                  borderRadius: "50%",
+                  backgroundColor: "rgba(16, 185, 129, 0.18)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#10B981",
+                }}
+              >
+                <MapPin size={18} />
+              </div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#F8FAFC" }}>
+                  No Lands Registered
+                </div>
+                <div style={{ fontSize: "0.74rem", color: "#94A3B8", marginTop: "2px" }}>
+                  Draw and register your farm parcel to unlock automated Sentinel-2 NDVI monitoring.
+                </div>
+              </div>
               <button
                 type="button"
-                className="btn btn-outline"
-                style={{ fontSize: "0.75rem", padding: "6px 10px" }}
-                onClick={onStartDraw}
+                className="cta-register-btn"
+                onClick={onNavigateToRegisterLand}
               >
-                <PlusCircle size={14} /> Draw First Land
+                <span>Register Your First Land</span>
+                <ArrowRight size={15} />
               </button>
             </div>
           ) : (
@@ -172,9 +231,10 @@ export default function ServiceLeftNav({
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "6px",
-                maxHeight: "220px",
+                gap: "8px",
+                maxHeight: "260px",
                 overflowY: "auto",
+                paddingRight: "2px",
               }}
             >
               {lands.map((land) => {
@@ -184,41 +244,41 @@ export default function ServiceLeftNav({
                     key={land.id}
                     className={`land-pill-btn ${isSelected ? "selected" : ""}`}
                     onClick={() => onSelectLand(land)}
+                    style={{
+                      cursor: "pointer",
+                    }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", overflow: "hidden", flex: 1 }}>
                       <MapPin
-                        size={15}
+                        size={16}
                         style={{
                           color: isSelected ? "#10B981" : "#64748B",
                           flexShrink: 0,
                         }}
                       />
                       <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <div style={{ fontWeight: 600, color: isSelected ? "#10B981" : "#E2E8F0" }}>
+                        <div style={{ fontWeight: 700, color: isSelected ? "#10B981" : "#E2E8F0", fontSize: "0.85rem" }}>
                           {land.name}
                         </div>
-                        <div style={{ fontSize: "0.7rem", color: "#64748B" }}>
+                        <div style={{ fontSize: "0.72rem", color: "#64748B" }}>
                           {land.area_hectares != null ? `${land.area_hectares} ha` : "Polygon"}
-                          {land.location ? ` • ${land.location}` : ""}
+                          {land.location ? ` &bull; ${land.location}` : ""}
                         </div>
                       </div>
                     </div>
 
+                    {/* Options button: opens Update details modal (excludes border edits and deletions) */}
                     <button
                       type="button"
+                      className="land-options-btn"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onOpenTuneModal(land);
+                        onOpenOptionsModal(land);
                       }}
-                      title="Tune Alert Scenarios"
-                      style={{
-                        padding: "4px 6px",
-                        color: "#94A3B8",
-                        borderRadius: "4px",
-                        backgroundColor: "rgba(255, 255, 255, 0.05)",
-                      }}
+                      title="Update land details"
                     >
-                      <Sliders size={13} />
+                      <SlidersHorizontal size={13} />
+                      <span>Options</span>
                     </button>
                   </div>
                 );
@@ -228,27 +288,24 @@ export default function ServiceLeftNav({
         </div>
       </div>
 
-      {/* Bottom Alert Box matching screenshot */}
-      <div className="system-alert-card">
-        <div className="system-alert-title">
-          <AlertTriangle size={15} />
-          <span>SYSTEM ALERT</span>
-        </div>
-        <div className="system-alert-desc">
-          {activeAlerts.length > 0 ? (
-            <div>
-              <div style={{ fontWeight: 700, color: "#FBBF24", marginBottom: "4px" }}>
-                {activeAlerts[0].message}
-              </div>
-              <div style={{ fontSize: "0.72rem", color: "#B45309" }}>
-                Severity: {activeAlerts[0].severity.toUpperCase()} • {new Date(activeAlerts[0].triggered_at).toLocaleDateString()}
-              </div>
+      {/* 3. SYSTEM ALERT SECTION: Hide completely if there are no alerts */}
+      {activeAlerts.length > 0 ? (
+        <div className="system-alert-card">
+          <div className="system-alert-title">
+            <AlertTriangle size={15} />
+            <span>SYSTEM ALERT</span>
+          </div>
+          <div className="system-alert-desc">
+            <div style={{ fontWeight: 700, color: "#FBBF24", marginBottom: "4px" }}>
+              {activeAlerts[0].message}
             </div>
-          ) : (
-            "NDVI vegetation index optimal across 82% of fields. Section 4 showing slight moisture stress."
-          )}
+            <div style={{ fontSize: "0.72rem", color: "#B45309" }}>
+              Severity: {activeAlerts[0].severity.toUpperCase()} &bull;{" "}
+              {new Date(activeAlerts[0].triggered_at).toLocaleDateString()}
+            </div>
+          </div>
         </div>
-      </div>
+      ) : null}
     </aside>
   );
 }

@@ -210,11 +210,51 @@ export async function plantCropOnLandApi(
   return response.json();
 }
 
+export async function updateLandApi(
+  token: string,
+  landId: number,
+  payload: Partial<LandCreatePayload>
+): Promise<Land> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/farms/lands/${landId}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    let msg = "Failed to update land details.";
+    if (typeof err.detail === "string") {
+      msg = err.detail;
+    } else if (Array.isArray(err.detail)) {
+      msg = err.detail.map((d: any) => d.msg).join(", ");
+    }
+    throw new Error(msg);
+  }
+
+  return response.json();
+}
+
 export async function getLandSatelliteDataApi(
   token: string,
-  landId: number
+  landId: number,
+  params?: {
+    satellite_name?: string;
+    acquisition_date?: string;
+    skip?: number;
+    limit?: number;
+  }
 ): Promise<VegetationIndexSet[]> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/farms/lands/${landId}/satellite-data`, {
+  const url = new URL(`${API_BASE_URL}/api/v1/farms/lands/${landId}/satellite-data`);
+  if (params?.satellite_name) url.searchParams.set("satellite_name", params.satellite_name);
+  if (params?.acquisition_date) url.searchParams.set("acquisition_date", params.acquisition_date);
+  if (params?.skip !== undefined) url.searchParams.set("skip", params.skip.toString());
+  if (params?.limit !== undefined) url.searchParams.set("limit", params.limit.toString());
+
+  const response = await fetch(url.toString(), {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,

@@ -30,6 +30,15 @@ export interface LandCreatePayload {
   boundary: GeoJsonPolygon;
 }
 
+export interface LandUpdatePayload {
+  name?: string;
+  location?: string;
+  soil_type?: string;
+  irrigation_type?: string;
+  notes?: string;
+  status?: boolean;
+}
+
 export interface Crop {
   id: number;
   crop_name: string;

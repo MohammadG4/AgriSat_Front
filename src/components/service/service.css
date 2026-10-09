@@ -497,17 +497,167 @@
   background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-/* Selected Land Drawer / Card */
-.selected-land-card {
-  position: absolute;
-  top: 80px;
-  left: 20px;
-  width: 320px;
-  background: rgba(11, 16, 28, 0.92);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 12px;
-  padding: 18px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
-  z-index: 15;
+/* Disabled Overlay Switch with Tooltip */
+.hud-pill.disabled-pill {
+  opacity: 0.6;
+  cursor: not-allowed !important;
+  position: relative;
 }
+
+.hud-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #0F172A;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94A3B8;
+  font-size: 0.75rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: all 0.15s ease;
+  z-index: 50;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+}
+
+.hud-pill:hover .hud-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Call to Action for Zero Lands */
+.zero-lands-cta {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.05) 100%);
+  border: 1px dashed rgba(16, 185, 129, 0.4);
+  border-radius: 12px;
+  padding: 18px 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.zero-lands-cta:hover {
+  border-color: #10B981;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(5, 150, 105, 0.08) 100%);
+}
+
+.cta-register-btn {
+  background-color: #10B981;
+  color: #042F24;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 10px 16px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  justify-content: center;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.cta-register-btn:hover {
+  background-color: #059669;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+/* Registration Page Instruction Banner */
+.registration-instruction-banner {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(11, 16, 28, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: 30px;
+  padding: 10px 22px;
+  color: #F8FAFC;
+  font-size: 0.92rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 25;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  pointer-events: auto;
+}
+
+/* Dedicated Registration Page Continue Floating Action Button */
+.registration-continue-fab {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #10B981;
+  color: #042F24;
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 14px 28px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 8px 28px rgba(16, 185, 129, 0.45);
+  transition: all 0.2s ease;
+  z-index: 30;
+}
+
+.registration-continue-fab:hover {
+  background-color: #059669;
+  color: #FFFFFF;
+  transform: translateX(-50%) translateY(-2px) scale(1.02);
+}
+
+/* Land Card Options Button */
+.land-options-btn {
+  padding: 6px 8px;
+  color: #94A3B8;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.land-options-btn:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #F8FAFC;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Global Alerts Modal Items */
+.alert-list-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.alert-list-item:hover {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.35);
+  transform: translateX(2px);
+}
+

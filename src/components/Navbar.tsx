@@ -16,6 +16,10 @@ export default function Navbar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
+  if (pathname === "/service/register-land") {
+    return null;
+  }
+
   return (
     <header
       style={{
