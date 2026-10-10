@@ -43,6 +43,7 @@ import {
   AlertScenarioUpdatePayload,
 } from "@/types/alert";
 import { formatAreaKm2 } from "@/components/service/geoUtils";
+import Loader from "@/components/Loader";
 
 function AlertOptionsContent() {
   const router = useRouter();
@@ -331,20 +332,7 @@ function AlertOptionsContent() {
   };
 
   if (isLoading || (!user && !getToken())) {
-    return (
-      <div
-        style={{
-          minHeight: "calc(100vh - 70px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#070B12",
-          color: "#10B981",
-        }}
-      >
-        Authenticating session...
-      </div>
-    );
+    return <Loader fullPage size="lg" message="Authenticating session..." />;
   }
 
   const activeCount = scenarios.filter((s) => s.is_active).length;
@@ -1885,22 +1873,7 @@ function AlertOptionsContent() {
 
 export default function AlertOptionsPage() {
   return (
-    <Suspense
-      fallback={
-        <div
-          style={{
-            minHeight: "calc(100vh - 70px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#070B12",
-            color: "#10B981",
-          }}
-        >
-          Loading Alert Configuration...
-        </div>
-      }
-    >
+    <Suspense fallback={<Loader fullPage size="lg" message="Loading Alert Configuration..." />}>
       <AlertOptionsContent />
     </Suspense>
   );

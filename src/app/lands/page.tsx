@@ -20,6 +20,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getLandsApi, getToken } from "@/lib/api";
 import { Land } from "@/types/farm";
 import { formatAreaKm2 } from "@/components/service/geoUtils";
+import Loader from "@/components/Loader";
 
 export default function LandsDirectoryPage() {
   const router = useRouter();
@@ -53,21 +54,7 @@ export default function LandsDirectoryPage() {
   }, [user]);
 
   if (isLoading || (!user && !getToken())) {
-    return (
-      <div
-        style={{
-          minHeight: "calc(100vh - 70px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#070B12",
-          color: "#10B981",
-          fontSize: "1rem",
-        }}
-      >
-        Authenticating session...
-      </div>
-    );
+    return <Loader fullPage size="lg" message="Authenticating session..." />;
   }
 
   const filteredLands = lands.filter((l) => {
@@ -209,16 +196,7 @@ export default function LandsDirectoryPage() {
 
         {/* Content State */}
         {loading ? (
-          <div
-            style={{
-              padding: "80px 20px",
-              textAlign: "center",
-              color: "#64748B",
-              fontSize: "0.95rem",
-            }}
-          >
-            Loading registered lands directory...
-          </div>
+          <Loader size="md" message="Loading registered lands directory..." />
         ) : lands.length === 0 ? (
           <div
             style={{

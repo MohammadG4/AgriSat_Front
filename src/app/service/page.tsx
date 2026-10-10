@@ -12,6 +12,7 @@ import {
 } from "@/lib/api";
 import { Land, VegetationIndexSet } from "@/types/farm";
 import { AlertNotification } from "@/types/alert";
+import Loader from "@/components/Loader";
 
 import ServiceLeftNav from "@/components/service/ServiceLeftNav";
 import UpdateLandModal from "@/components/service/UpdateLandModal";
@@ -27,18 +28,8 @@ const MapboxServiceMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div
-        className="map-viewport"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#070B12",
-          color: "#64748B",
-          fontSize: "0.95rem",
-        }}
-      >
-        Loading High-Resolution Satellite &amp; NDVI Visualization...
+      <div className="map-viewport" style={{ display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#070B12" }}>
+        <Loader size="lg" message="Loading High-Resolution Satellite & NDVI Visualization..." />
       </div>
     ),
   }
@@ -219,22 +210,7 @@ export default function ServicePage() {
   };
 
   if (isLoading || (!user && !getToken())) {
-    return (
-      <div
-        style={{
-          width: "100vw",
-          height: "calc(100vh - 70px)",
-          backgroundColor: "#070B12",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#10B981",
-          fontSize: "0.95rem",
-        }}
-      >
-        Authenticating session...
-      </div>
-    );
+    return <Loader fullPage size="lg" message="Authenticating session..." />;
   }
 
   return (

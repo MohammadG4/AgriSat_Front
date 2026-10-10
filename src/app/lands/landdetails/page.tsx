@@ -33,6 +33,7 @@ import {
 import { Land, CropOnLand } from "@/types/farm";
 import { formatAreaKm2 } from "@/components/service/geoUtils";
 import CropRegistrationModal from "@/components/service/CropRegistrationModal";
+import Loader from "@/components/Loader";
 
 function LandDetailsContent() {
   const router = useRouter();
@@ -186,20 +187,7 @@ function LandDetailsContent() {
   };
 
   if (isLoading || (!user && !getToken())) {
-    return (
-      <div
-        style={{
-          minHeight: "calc(100vh - 70px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#070B12",
-          color: "#10B981",
-        }}
-      >
-        Authenticating session...
-      </div>
-    );
+    return <Loader fullPage size="lg" message="Authenticating session..." />;
   }
 
   if (!landId) {
@@ -214,11 +202,7 @@ function LandDetailsContent() {
   }
 
   if (loading && !land) {
-    return (
-      <div style={{ padding: "80px 20px", textAlign: "center", color: "#64748B", backgroundColor: "#070B12", minHeight: "calc(100vh - 70px)" }}>
-        Loading parcel intelligence &amp; crop records...
-      </div>
-    );
+    return <Loader fullPage size="lg" message="Loading parcel intelligence & crop records..." />;
   }
 
   if (!land) {
@@ -1128,13 +1112,7 @@ function LandDetailsContent() {
 
 export default function LandDetailsPage() {
   return (
-    <Suspense
-      fallback={
-        <div style={{ padding: "60px 20px", textAlign: "center", color: "#10B981", backgroundColor: "#070B12", minHeight: "calc(100vh - 70px)" }}>
-          Loading land details...
-        </div>
-      }
-    >
+    <Suspense fallback={<Loader fullPage size="lg" message="Loading land details..." />}>
       <LandDetailsContent />
     </Suspense>
   );

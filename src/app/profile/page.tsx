@@ -22,6 +22,7 @@ import {
   LogIn,
   Key,
 } from "lucide-react";
+import Loader from "@/components/Loader";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -40,21 +41,7 @@ export default function ProfilePage() {
   };
 
   if (isLoading) {
-    return (
-      <div
-        className="container"
-        style={{
-          padding: "80px 24px",
-          textAlign: "center",
-          color: "var(--text-muted)",
-        }}
-      >
-        <div style={{ display: "inline-block", marginBottom: "16px" }}>
-          <Satellite size={32} color="var(--primary)" />
-        </div>
-        <p style={{ fontSize: "1rem" }}>Retrieving user credentials from AgriSat API...</p>
-      </div>
-    );
+    return <Loader fullPage size="lg" message="Retrieving user credentials..." />;
   }
 
   if (!user) {

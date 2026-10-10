@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getToken } from "@/lib/api";
+import Loader from "@/components/Loader";
 import "@/components/service/service.css";
 
 const DedicatedRegisterLandMap = dynamic(
@@ -12,20 +13,7 @@ const DedicatedRegisterLandMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div
-        style={{
-          width: "100vw",
-          height: "100vh",
-          backgroundColor: "#070B12",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#64748B",
-          fontSize: "1rem",
-        }}
-      >
-        Initializing High-Precision Land Boundary Editor...
-      </div>
+      <Loader fullPage size="lg" message="Initializing High-Precision Land Boundary Editor..." />
     ),
   }
 );
@@ -41,22 +29,7 @@ export default function RegisterLandPage() {
   }, [user, isLoading, router]);
 
   if (isLoading || (!user && !getToken())) {
-    return (
-      <div
-        style={{
-          width: "100vw",
-          height: "100vh",
-          backgroundColor: "#070B12",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#10B981",
-          fontSize: "0.95rem",
-        }}
-      >
-        Verifying authorization...
-      </div>
-    );
+    return <Loader fullPage size="lg" message="Verifying authorization..." />;
   }
 
   return <DedicatedRegisterLandMap />;
