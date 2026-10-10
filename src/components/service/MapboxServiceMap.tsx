@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Land } from "@/types/farm";
 import { parseCoordinates, getPolygonCenter, formatAreaKm2, EGYPT_BBOX } from "./geoUtils";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface MapboxServiceMapProps {
   lands: Land[];
@@ -35,9 +36,15 @@ export default function MapboxServiceMap({
   overlayActive,
   onToggleOverlay,
 }: MapboxServiceMapProps) {
+  const { t, locale, isRTL } = useLanguage();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+
+  const localeRef = useRef(locale);
+  useEffect(() => {
+    localeRef.current = locale;
+  }, [locale]);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -88,50 +95,51 @@ export default function MapboxServiceMap({
       setMapBearing(Math.round(map.getBearing()));
     });
 
-    // ── Arabic label persistence ──────────────────────────────────
-    // The satellite-streets-v12 style streams vector tiles asynchronously.
-    // map.on("load") fires once, but later tile arrivals re-render symbol
-    // layers using the original style (English).  We must re-apply the
-    // Arabic override every time new vector data arrives or the style
-    // finishes loading, with a debounce guard to avoid tight loops.
-    let arabicLabelTimer: ReturnType<typeof setTimeout> | null = null;
+    // ── Label persistence (English / Arabic dynamically) ───────────
+    let labelTimer: ReturnType<typeof setTimeout> | null = null;
 
-    const setArabicLabels = () => {
-      if (arabicLabelTimer) return;                // debounce guard
-      arabicLabelTimer = setTimeout(() => {
-        arabicLabelTimer = null;
-        const style = map.getStyle();
-        if (!style?.layers) return;
-        style.layers.forEach((layer) => {
-          if (
-            layer.type === "symbol" &&
-            layer.layout &&
-            (layer.layout as any)["text-field"]
-          ) {
-            try {
-              map.setLayoutProperty(layer.id, "text-field", [
-                "coalesce",
-                ["get", "name_ar"],
-                ["get", "name"],
-              ]);
-            } catch {
-              // ignore locked layers
+    const applyMapLabels = () => {
+      if (labelTimer) return; // debounce guard
+      labelTimer = setTimeout(() => {
+        labelTimer = null;
+        if (!map || !map.isStyleLoaded()) return;
+        try {
+          const style = map.getStyle();
+          if (!style?.layers) return;
+          const targetField = localeRef.current === "ar" ? "name_ar" : "name_en";
+          style.layers.forEach((layer) => {
+            if (
+              layer.type === "symbol" &&
+              layer.layout &&
+              (layer.layout as any)["text-field"]
+            ) {
+              try {
+                map.setLayoutProperty(layer.id, "text-field", [
+                  "coalesce",
+                  ["get", targetField],
+                  ["get", "name"],
+                ]);
+              } catch {
+                // ignore locked layers
+              }
             }
-          }
-        });
+          });
+        } catch {
+          // ignore if style not ready
+        }
       }, 50);
     };
 
-    // Bind to multiple lifecycle events so Arabic labels survive tile reloads
-    map.on("style.load", setArabicLabels);
-    map.on("sourcedata", setArabicLabels);
-    map.once("idle", setArabicLabels);
-    // ── End Arabic label persistence ──────────────────────────────
+    // Bind to multiple lifecycle events so labels survive tile reloads
+    map.on("style.load", applyMapLabels);
+    map.on("sourcedata", applyMapLabels);
+    map.once("idle", applyMapLabels);
+    // ── End Label persistence ──────────────────────────────────────
 
     // Map Load events
     map.on("load", () => {
-      // Apply Arabic labels immediately on first load as well
-      setArabicLabels();
+      // Apply labels immediately on first load as well
+      applyMapLabels();
 
       // Setup Lands GeoJSON source and fill/line layers (Read-only visuals)
       map.addSource("user-lands", {
@@ -209,10 +217,50 @@ export default function MapboxServiceMap({
     });
 
     return () => {
-      if (arabicLabelTimer) clearTimeout(arabicLabelTimer);
+      if (labelTimer) clearTimeout(labelTimer);
       map.remove();
     };
   }, []);
+
+  // Update map vector labels dynamically when language changes
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const updateLabels = () => {
+      try {
+        if (!map.isStyleLoaded()) return;
+        const style = map.getStyle();
+        if (!style?.layers) return;
+        const targetField = locale === "ar" ? "name_ar" : "name_en";
+        style.layers.forEach((layer) => {
+          if (
+            layer.type === "symbol" &&
+            layer.layout &&
+            (layer.layout as any)["text-field"]
+          ) {
+            try {
+              map.setLayoutProperty(layer.id, "text-field", [
+                "coalesce",
+                ["get", targetField],
+                ["get", "name"],
+              ]);
+            } catch {
+              // ignore locked layers
+            }
+          }
+        });
+      } catch {
+        // style not ready yet
+      }
+    };
+
+    if (map.isStyleLoaded()) {
+      updateLabels();
+    } else {
+      map.once("style.load", updateLabels);
+    }
+  }, [locale]);
 
   // Update Lands GeoJSON on Map and custom field markers
   useEffect(() => {
@@ -385,7 +433,7 @@ export default function MapboxServiceMap({
             <input
               type="text"
               className="map-search-input"
-              placeholder="Search location in Egypt (Arabic/English) or coordinates..."
+              placeholder={t("service.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -452,14 +500,14 @@ export default function MapboxServiceMap({
               }}
             />
             <span style={{ fontSize: "0.82rem", fontWeight: 700 }}>
-              North {mapBearing !== 0 ? `(${mapBearing}°)` : ""}
+              {t("service.north")} {mapBearing !== 0 ? `(${mapBearing}°)` : ""}
             </span>
           </button>
 
           {/* Active Layer Pill */}
           <div className="hud-pill">
             <Layers size={16} style={{ color: "#10B981" }} />
-            <span>Active Layer: Sentinel-2 NDVI Index</span>
+            <span>{t("service.activeLayerNdvi")}</span>
           </div>
 
           {/* Overlay Toggle Switch Pill */}
@@ -473,7 +521,7 @@ export default function MapboxServiceMap({
               }
             }}
           >
-            <span style={{ fontSize: "0.84rem", fontWeight: 600 }}>Overlay:</span>
+            <span style={{ fontSize: "0.84rem", fontWeight: 600 }}>{t("service.overlayPill")}</span>
             <div
               className={`toggle-switch ${
                 hasSatelliteData && overlayActive ? "on" : ""
@@ -484,7 +532,7 @@ export default function MapboxServiceMap({
 
             {/* Hover Tooltip when no satellite data is available */}
             {!hasSatelliteData && (
-              <div className="hud-tooltip">no data provided yet</div>
+              <div className="hud-tooltip">{t("service.noDataYet")}</div>
             )}
           </div>
         </div>
@@ -492,12 +540,12 @@ export default function MapboxServiceMap({
 
       {/* Bottom Right Legend Card */}
       <div className="bottom-legend-card">
-        <div className="legend-title">SENTINEL-2 NDVI INDEX</div>
+        <div className="legend-title">{t("service.ndviLegendTitle")}</div>
         <div className="legend-bar" />
         <div className="legend-labels">
-          <span>0.0 Bare</span>
-          <span>0.4 Stress</span>
-          <span>0.85 Dense</span>
+          <span>{t("service.ndviBare")}</span>
+          <span>{t("service.ndviStress")}</span>
+          <span>{t("service.ndviDense")}</span>
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { X, Sliders, Settings, AlertCircle, CheckCircle, MapPin } from "lucide-r
 import { Land, LandUpdatePayload } from "@/types/farm";
 import { updateLandApi, getToken } from "@/lib/api";
 import { formatAreaKm2 } from "./geoUtils";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface UpdateLandModalProps {
   land: Land;
@@ -19,6 +20,7 @@ export default function UpdateLandModal({
   onSuccess,
   onOpenTuneScenarios,
 }: UpdateLandModalProps) {
+  const { t, isRTL } = useLanguage();
   const [name, setName] = useState(land.name || "");
   const [location, setLocation] = useState(land.location || "");
   const [soilType, setSoilType] = useState(land.soil_type || "Clay");
@@ -83,7 +85,7 @@ export default function UpdateLandModal({
             </div>
             <div>
               <div style={{ fontWeight: 800, fontSize: "1.05rem" }}>
-                Land Options &amp; Details
+                {t("modals.updateLandHeader")}
               </div>
               <div style={{ fontSize: "0.75rem", color: "#64748B" }}>
                 ID: #{land.id} &bull; {land.area_hectares != null ? formatAreaKm2(land.area_hectares) : "Polygon"}
@@ -119,7 +121,7 @@ export default function UpdateLandModal({
 
             <div className="form-group">
               <label className="form-label">
-                <span>Land Name *</span>
+                <span>{t("modals.parcelNameLabel")} *</span>
               </label>
               <input
                 type="text"
@@ -133,7 +135,7 @@ export default function UpdateLandModal({
 
             <div className="form-group">
               <label className="form-label">
-                <span>Location / Region</span>
+                <span>{t("modals.locationLabel")}</span>
               </label>
               <input
                 type="text"
@@ -147,39 +149,39 @@ export default function UpdateLandModal({
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
               <div className="form-group">
-                <label className="form-label">Soil Type</label>
+                <label className="form-label">{t("modals.soilTypeLabel")}</label>
                 <select
                   className="form-input"
                   value={soilType}
                   onChange={(e) => setSoilType(e.target.value)}
                   disabled={saving}
                 >
-                  <option value="Clay">Clay</option>
-                  <option value="Sandy">Sandy</option>
-                  <option value="Loam">Loam</option>
-                  <option value="Silty Clay">Silty Clay</option>
-                  <option value="Peat">Peat</option>
+                  <option value="Clay">{t("landDetails.soilClay")}</option>
+                  <option value="Sandy">{t("landDetails.soilSandy")}</option>
+                  <option value="Loam">{t("landDetails.soilLoam")}</option>
+                  <option value="Silty Clay">{t("landDetails.soilSiltyClay")}</option>
+                  <option value="Peat">{t("landDetails.soilPeat")}</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Irrigation System</label>
+                <label className="form-label">{t("modals.irrigationTypeLabel")}</label>
                 <select
                   className="form-input"
                   value={irrigationType}
                   onChange={(e) => setIrrigationType(e.target.value)}
                   disabled={saving}
                 >
-                  <option value="Drip">Drip Irrigation</option>
-                  <option value="Sprinkler">Center Pivot / Sprinkler</option>
-                  <option value="Surface">Surface / Flood</option>
-                  <option value="Sub-surface">Sub-surface</option>
+                  <option value="Drip">{t("landDetails.irrigationDrip")}</option>
+                  <option value="Sprinkler">{t("landDetails.irrigationPivot")}</option>
+                  <option value="Surface">{t("landDetails.irrigationSurface")}</option>
+                  <option value="Sub-surface">{t("landDetails.irrigationSubSurface")}</option>
                 </select>
               </div>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Notes</label>
+              <label className="form-label">{t("modals.notesLabel")}</label>
               <textarea
                 className="form-input"
                 rows={2}
@@ -205,11 +207,11 @@ export default function UpdateLandModal({
               }}
             >
               <div>
-                <span style={{ color: "#F8FAFC", fontWeight: 600 }}>Calculated Area: </span>
+                <span style={{ color: "#F8FAFC", fontWeight: 600 }}>{t("modals.calculatedArea")} </span>
                 {land.area_hectares != null ? formatAreaKm2(land.area_hectares) : "N/A"}
               </div>
               <span style={{ fontSize: "0.72rem", color: "#64748B" }}>
-                (Geographic boundaries are locked)
+                {t("modals.geoBoundariesLocked")}
               </span>
             </div>
 
@@ -225,7 +227,7 @@ export default function UpdateLandModal({
                 }}
               >
                 <Sliders size={15} style={{ color: "#10B981" }} />
-                <span>Tune NDVI Alert Scenarios</span>
+                <span>{t("modals.tuneAlertsQuickBtn")}</span>
               </button>
             </div>
           </div>
@@ -237,14 +239,14 @@ export default function UpdateLandModal({
               onClick={onClose}
               disabled={saving}
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
               className="btn btn-primary"
               disabled={saving}
             >
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? t("common.loading") : t("modals.updateDetails")}
             </button>
           </div>
         </form>

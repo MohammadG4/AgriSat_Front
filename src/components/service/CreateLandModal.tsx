@@ -5,6 +5,7 @@ import { X, Layers, CheckCircle, AlertCircle, Sparkles } from "lucide-react";
 import { GeoJsonPolygon, Land, LandCreatePayload } from "@/types/farm";
 import { createLandApi, createAlertScenarioApi, getToken } from "@/lib/api";
 import { calculatePolygonAreaKm2, formatAreaKm2 } from "./geoUtils";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface CreateLandModalProps {
   boundary: GeoJsonPolygon | null;
@@ -17,6 +18,7 @@ export default function CreateLandModal({
   onClose,
   onSuccess,
 }: CreateLandModalProps) {
+  const { t, isRTL } = useLanguage();
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [soilType, setSoilType] = useState("Clay");
@@ -136,10 +138,10 @@ export default function CreateLandModal({
             </div>
             <div>
               <div style={{ fontWeight: 700, fontSize: "1.05rem" }}>
-                Register New Land Parcel
+                {t("modals.createLandHeader")}
               </div>
               <div style={{ fontSize: "0.75rem", color: "#64748B" }}>
-                Mapbox Polygon &bull; Approx. {formatAreaKm2(approxKm2, true)}
+                Mapbox Polygon &bull; {t("lands.area")}: ~{formatAreaKm2(approxKm2, true)}
               </div>
             </div>
           </div>
@@ -171,7 +173,7 @@ export default function CreateLandModal({
 
             <div className="form-group">
               <label className="form-label">
-                <span>Land Name *</span>
+                <span>{t("modals.parcelNameLabel")} *</span>
                 <span style={{ color: "#64748B", fontSize: "0.75rem" }}>e.g. Field #1 (Wheat)</span>
               </label>
               <input
@@ -187,7 +189,7 @@ export default function CreateLandModal({
 
             <div className="form-group">
               <label className="form-label">
-                <span>Location Name / Region</span>
+                <span>{t("modals.locationLabel")}</span>
                 <span style={{ color: "#64748B", fontSize: "0.75rem" }}>City or Sector</span>
               </label>
               <input
@@ -202,39 +204,39 @@ export default function CreateLandModal({
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
               <div className="form-group">
-                <label className="form-label">Soil Type</label>
+                <label className="form-label">{t("modals.soilTypeLabel")}</label>
                 <select
                   className="form-input"
                   value={soilType}
                   onChange={(e) => setSoilType(e.target.value)}
                   disabled={loading}
                 >
-                  <option value="Clay">Clay</option>
-                  <option value="Sandy">Sandy</option>
-                  <option value="Loam">Loam</option>
-                  <option value="Silty Clay">Silty Clay</option>
-                  <option value="Peat">Peat</option>
+                  <option value="Clay">{t("landDetails.soilClay")}</option>
+                  <option value="Sandy">{t("landDetails.soilSandy")}</option>
+                  <option value="Loam">{t("landDetails.soilLoam")}</option>
+                  <option value="Silty Clay">{t("landDetails.soilSiltyClay")}</option>
+                  <option value="Peat">{t("landDetails.soilPeat")}</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Irrigation System</label>
+                <label className="form-label">{t("modals.irrigationTypeLabel")}</label>
                 <select
                   className="form-input"
                   value={irrigationType}
                   onChange={(e) => setIrrigationType(e.target.value)}
                   disabled={loading}
                 >
-                  <option value="Drip">Drip Irrigation</option>
-                  <option value="Sprinkler">Center Pivot / Sprinkler</option>
-                  <option value="Surface">Surface / Flood</option>
-                  <option value="Sub-surface">Sub-surface</option>
+                  <option value="Drip">{t("landDetails.irrigationDrip")}</option>
+                  <option value="Sprinkler">{t("landDetails.irrigationPivot")}</option>
+                  <option value="Surface">{t("landDetails.irrigationSurface")}</option>
+                  <option value="Sub-surface">{t("landDetails.irrigationSubSurface")}</option>
                 </select>
               </div>
             </div>
 
             <div className="form-group" style={{ marginBottom: "10px" }}>
-              <label className="form-label">Notes (Optional)</label>
+              <label className="form-label">{t("modals.notesLabel")}</label>
               <textarea
                 className="form-input"
                 rows={2}
@@ -262,10 +264,10 @@ export default function CreateLandModal({
               <CheckCircle size={16} style={{ flexShrink: 0, marginTop: "2px", color: "#10B981" }} />
               <div>
                 <div style={{ fontWeight: 700, marginBottom: "2px" }}>
-                  Automated Default Scenarios Included
+                  {t("modals.autoScenariosIncluded")}
                 </div>
                 <div style={{ color: "#94A3B8", fontSize: "0.75rem" }}>
-                  This land will automatically receive <strong>Rapid NDVI Drop (15%)</strong> and <strong>Spatial Patchy Anomaly (15% drop over 20% area)</strong> alert scenarios. You can tune these parameters immediately after creation.
+                  {t("modals.autoScenariosIncludedDesc")}
                 </div>
               </div>
             </div>
@@ -278,14 +280,14 @@ export default function CreateLandModal({
               onClick={onClose}
               disabled={loading}
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
               className="btn btn-primary"
               disabled={loading}
             >
-              {loading ? "Registering & Activating..." : "Save Land & Activate"}
+              {loading ? t("registerLand.creatingAndActivating") : t("modals.saveAndRegister")}
             </button>
           </div>
         </form>

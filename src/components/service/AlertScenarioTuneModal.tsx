@@ -27,6 +27,7 @@ import {
   getToken,
 } from "@/lib/api";
 import { formatAreaKm2 } from "./geoUtils";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface AlertScenarioTuneModalProps {
   land: Land;
@@ -37,6 +38,7 @@ export default function AlertScenarioTuneModal({
   land,
   onClose,
 }: AlertScenarioTuneModalProps) {
+  const { t, isRTL } = useLanguage();
   const [scenarios, setScenarios] = useState<AlertScenario[]>([]);
   const [alerts, setAlerts] = useState<AlertNotification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,7 +155,7 @@ export default function AlertScenarioTuneModal({
             </div>
             <div>
               <div style={{ fontWeight: 800, fontSize: "1.05rem" }}>
-                NDVI Intelligence &amp; Alert Scenarios
+                {t("modals.tuneModalHeader")}
               </div>
               <div style={{ fontSize: "0.75rem", color: "#64748B" }}>
                 {land.name} &bull; ID: #{land.id} {land.area_hectares ? `&bull; ${formatAreaKm2(land.area_hectares)}` : ""}
@@ -190,7 +192,7 @@ export default function AlertScenarioTuneModal({
               borderBottom: activeTab === "scenarios" ? "2px solid #10B981" : "2px solid transparent",
             }}
           >
-            Active Scenarios ({scenarios.length})
+            {t("modals.activeScenariosTab")} ({scenarios.length})
           </button>
 
           <button
@@ -207,7 +209,7 @@ export default function AlertScenarioTuneModal({
               gap: "6px",
             }}
           >
-            <Plus size={15} /> Tune / Add Scenario
+            <Plus size={15} /> {t("modals.tuneAddScenarioTab")}
           </button>
 
           <button
@@ -224,7 +226,7 @@ export default function AlertScenarioTuneModal({
               gap: "6px",
             }}
           >
-            <Bell size={15} /> Triggered Alerts ({alerts.length})
+            <Bell size={15} /> {t("modals.triggeredAlertsTab")} ({alerts.length})
           </button>
         </div>
 
@@ -257,7 +259,7 @@ export default function AlertScenarioTuneModal({
               }}
             >
               <RefreshCw size={24} className="spin-animation" />
-              <span>Retrieving NDVI telemetry rules...</span>
+              <span>{t("modals.retrievingTelemetry")}</span>
             </div>
           ) : activeTab === "scenarios" ? (
             <div>
@@ -270,14 +272,14 @@ export default function AlertScenarioTuneModal({
                   }}
                 >
                   <Activity size={32} style={{ color: "#64748B", marginBottom: "10px" }} />
-                  <p>No active scenarios configured on this field yet.</p>
+                  <p>{t("modals.noScenariosOnField")}</p>
                   <button
                     type="button"
                     className="btn btn-primary"
                     style={{ marginTop: "14px" }}
                     onClick={() => setActiveTab("add")}
                   >
-                    <Plus size={16} /> Configure First Scenario
+                    <Plus size={16} /> {t("modals.configureFirstScenario")}
                   </button>
                 </div>
               ) : (
@@ -312,14 +314,22 @@ export default function AlertScenarioTuneModal({
                         <span
                           className={`badge ${
                             sc.severity === "critical"
-                              ? "badge-warning"
+                              ? "badge-danger"
                               : sc.severity === "high"
                               ? "badge-warning"
+                              : sc.severity === "medium"
+                              ? "badge-info"
                               : "badge-success"
                           }`}
                           style={{ textTransform: "uppercase" }}
                         >
-                          {sc.severity}
+                          {sc.severity === "critical"
+                            ? t("alertOptions.severityCritical")
+                            : sc.severity === "high"
+                            ? t("alertOptions.severityHigh")
+                            : sc.severity === "medium"
+                            ? t("alertOptions.severityMedium")
+                            : t("alertOptions.severityLow")}
                         </span>
                       </div>
 
@@ -373,7 +383,7 @@ export default function AlertScenarioTuneModal({
           ) : activeTab === "add" ? (
             <form onSubmit={handleCreateScenario}>
               <div className="form-group">
-                <label className="form-label">Algorithm Type</label>
+                <label className="form-label">{t("modals.algorithmType")}</label>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                   <button
                     type="button"
@@ -383,7 +393,7 @@ export default function AlertScenarioTuneModal({
                     }`}
                     style={{ fontSize: "0.82rem", padding: "10px" }}
                   >
-                    Rapid NDVI Drop
+                    {t("modals.rapidNdviDrop")}
                   </button>
                   <button
                     type="button"
@@ -393,7 +403,7 @@ export default function AlertScenarioTuneModal({
                     }`}
                     style={{ fontSize: "0.82rem", padding: "10px" }}
                   >
-                    Spatial Anomaly (Patchy)
+                    {t("modals.spatialAnomaly")}
                   </button>
                 </div>
               </div>
@@ -483,7 +493,7 @@ export default function AlertScenarioTuneModal({
 
               <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "12px" }}>
                 <div className="form-group">
-                  <label className="form-label">Scenario Name</label>
+                  <label className="form-label">{t("alertOptions.scenarioName")}</label>
                   <input
                     type="text"
                     className="form-input"
@@ -494,7 +504,7 @@ export default function AlertScenarioTuneModal({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Severity</label>
+                  <label className="form-label">{t("alertOptions.severity")}</label>
                   <select
                     className="form-input"
                     value={severity}
@@ -509,7 +519,7 @@ export default function AlertScenarioTuneModal({
               </div>
 
               <div className="form-group">
-                <label className="form-label">Description (Optional)</label>
+                <label className="form-label">{t("modals.notesLabel")}</label>
                 <input
                   type="text"
                   className="form-input"
@@ -524,14 +534,14 @@ export default function AlertScenarioTuneModal({
                   className="btn btn-secondary"
                   onClick={() => setActiveTab("scenarios")}
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
                   className="btn btn-primary"
                   disabled={saving}
                 >
-                  {saving ? "Saving Scenario..." : "Apply Scenario Rule"}
+                  {saving ? t("common.loading") : t("modals.applyScenarioRule")}
                 </button>
               </div>
             </form>
@@ -540,7 +550,7 @@ export default function AlertScenarioTuneModal({
               {alerts.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "40px 20px", color: "#94A3B8" }}>
                   <CheckCircle size={32} style={{ color: "#10B981", marginBottom: "10px" }} />
-                  <p>No anomalies currently triggered for this parcel. Vegetation indices are within expected thresholds.</p>
+                  <p>{t("modals.noAnomaliesCurrentField")}</p>
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -565,7 +575,25 @@ export default function AlertScenarioTuneModal({
                         <span style={{ fontWeight: 700, color: "#FCA5A5", fontSize: "0.88rem" }}>
                           {al.message}
                         </span>
-                        <span className="badge badge-warning">{al.severity}</span>
+                        <span
+                          className={`badge ${
+                            al.severity === "critical"
+                              ? "badge-danger"
+                              : al.severity === "high"
+                              ? "badge-warning"
+                              : al.severity === "medium"
+                              ? "badge-info"
+                              : "badge-success"
+                          }`}
+                        >
+                          {al.severity === "critical"
+                            ? t("alertOptions.severityCritical")
+                            : al.severity === "high"
+                            ? t("alertOptions.severityHigh")
+                            : al.severity === "medium"
+                            ? t("alertOptions.severityMedium")
+                            : t("alertOptions.severityLow")}
+                        </span>
                       </div>
                       <div style={{ fontSize: "0.74rem", color: "#94A3B8" }}>
                         Index: {al.index_name} &bull; Triggered:{" "}

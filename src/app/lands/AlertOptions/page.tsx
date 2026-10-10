@@ -25,6 +25,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   getLandByIdApi,
   getAlertScenariosApi,
@@ -52,6 +53,7 @@ function AlertOptionsContent() {
   const landId = landIdParam ? parseInt(landIdParam, 10) : null;
 
   const { user, isLoading } = useAuth();
+  const { t, locale, isRTL } = useLanguage();
   const [land, setLand] = useState<Land | null>(null);
   const [scenarios, setScenarios] = useState<AlertScenario[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -398,7 +400,7 @@ function AlertOptionsContent() {
                 transition: "all 0.2s ease",
               }}
             >
-              <ArrowLeft size={16} /> Back to Directory
+              <ArrowLeft size={16} className="icon-flip" /> {t("landDetails.backToLands")}
             </Link>
 
             {land && (
@@ -417,7 +419,7 @@ function AlertOptionsContent() {
                   border: "1px solid rgba(16, 185, 129, 0.25)",
                 }}
               >
-                View Land Details
+                {t("common.viewDetails")}
               </Link>
             )}
           </div>
@@ -473,7 +475,7 @@ function AlertOptionsContent() {
                   color: "#F8FAFC",
                 }}
               >
-                Alert Options &amp; Telemetry Scenarios
+                {t("alertOptions.title")}
               </h1>
             </div>
 
@@ -491,7 +493,7 @@ function AlertOptionsContent() {
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <Layers size={15} style={{ color: "#10B981" }} />
                 <span style={{ fontWeight: 700, color: "#E2E8F0" }}>
-                  {land?.name || "Loading parcel..."}
+                  {land?.name || t("common.loading")}
                 </span>
               </div>
 
@@ -511,7 +513,7 @@ function AlertOptionsContent() {
                       fontWeight: 600,
                     }}
                   >
-                    Area: {formatAreaKm2(land.area_hectares)}
+                    {t("common.area")}: {formatAreaKm2(land.area_hectares)}
                   </span>
                 </div>
               )}
@@ -535,7 +537,7 @@ function AlertOptionsContent() {
                 {scenarios.length}
               </div>
               <div style={{ fontSize: "0.72rem", color: "#64748B", textTransform: "uppercase" }}>
-                Total Scenarios
+                {t("common.total")}
               </div>
             </div>
 
@@ -544,7 +546,7 @@ function AlertOptionsContent() {
                 {activeCount}
               </div>
               <div style={{ fontSize: "0.72rem", color: "#64748B", textTransform: "uppercase" }}>
-                Active Rules
+                {t("common.active")}
               </div>
             </div>
           </div>
@@ -583,7 +585,7 @@ function AlertOptionsContent() {
                 opacity: bulkLoading || scenarios.length === 0 ? 0.5 : 1,
               }}
             >
-              <Power size={16} /> Activate all
+              <Power size={16} /> {t("alertOptions.enableAll")}
             </button>
 
             {/* Bulk Deactivate Button */}
@@ -607,7 +609,7 @@ function AlertOptionsContent() {
                 opacity: bulkLoading || scenarios.length === 0 ? 0.5 : 1,
               }}
             >
-              <PowerOff size={16} /> Deactivate all
+              <PowerOff size={16} /> {t("alertOptions.disableAll")}
             </button>
           </div>
 
@@ -626,7 +628,8 @@ function AlertOptionsContent() {
               boxShadow: "0 4px 14px rgba(16, 185, 129, 0.35)",
             }}
           >
-            <Plus size={18} /> Add Scenario
+            <Plus size={18} />
+            <span>{t("alertOptions.createScenarioBtn")}</span>
           </button>
         </div>
 
@@ -796,7 +799,7 @@ function AlertOptionsContent() {
                             textTransform: "uppercase",
                           }}
                         >
-                          {isRapid ? "Rapid NDVI Drop" : "Spatial Anomaly"}
+                          {isRapid ? t("modals.rapidNdviDrop") : t("modals.spatialAnomaly")}
                         </span>
 
                         {/* Severity Badge */}
@@ -806,6 +809,8 @@ function AlertOptionsContent() {
                               ? "badge-danger"
                               : sc.severity === "high"
                               ? "badge-warning"
+                              : sc.severity === "medium"
+                              ? "badge-info"
                               : "badge-success"
                           }`}
                           style={{
@@ -814,7 +819,13 @@ function AlertOptionsContent() {
                             padding: "2px 7px",
                           }}
                         >
-                          {sc.severity}
+                          {sc.severity === "critical"
+                            ? t("alertOptions.severityCritical")
+                            : sc.severity === "high"
+                            ? t("alertOptions.severityHigh")
+                            : sc.severity === "medium"
+                            ? t("alertOptions.severityMedium")
+                            : t("alertOptions.severityLow")}
                         </span>
 
                         {/* Active/Inactive Status Badge */}
@@ -835,7 +846,7 @@ function AlertOptionsContent() {
                             }`,
                           }}
                         >
-                          {sc.is_active ? "ACTIVE" : "INACTIVE"}
+                          {sc.is_active ? t("alertOptions.active").toUpperCase() : t("alertOptions.disabled").toUpperCase()}
                         </span>
                       </div>
 
@@ -961,7 +972,7 @@ function AlertOptionsContent() {
                           color: sc.is_active ? "#10B981" : "#64748B",
                         }}
                       >
-                        {sc.is_active ? "Enabled" : "Disabled"}
+                        {sc.is_active ? t("alertOptions.active") : t("alertOptions.disabled")}
                       </span>
 
                       <button
@@ -969,7 +980,7 @@ function AlertOptionsContent() {
                         role="switch"
                         aria-checked={sc.is_active}
                         onClick={() => handleToggleScenario(sc)}
-                        title={sc.is_active ? "Deactivate Scenario" : "Activate Scenario"}
+                        title={sc.is_active ? t("alertOptions.disabled") : t("alertOptions.active")}
                         style={{
                           width: "48px",
                           height: "26px",
@@ -984,6 +995,10 @@ function AlertOptionsContent() {
                           cursor: "pointer",
                           transition: "all 0.25s ease",
                           padding: "2px",
+                          direction: "ltr",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "flex-start",
                         }}
                       >
                         <div
@@ -997,6 +1012,7 @@ function AlertOptionsContent() {
                               : "translateX(0px)",
                             transition: "transform 0.25s ease",
                             boxShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+                            flexShrink: 0,
                           }}
                         />
                       </button>
@@ -1436,10 +1452,10 @@ function AlertOptionsContent() {
                           setAddSeverity(e.target.value as AlertSeverity)
                         }
                       >
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                        <option value="critical">Critical</option>
+                        <option value="low">{t("alertOptions.severityLow")}</option>
+                        <option value="medium">{t("alertOptions.severityMedium")}</option>
+                        <option value="high">{t("alertOptions.severityHigh")}</option>
+                        <option value="critical">{t("alertOptions.severityCritical")}</option>
                       </select>
                     </div>
                   </div>

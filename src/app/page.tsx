@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   Satellite,
   LogIn,
@@ -16,13 +17,13 @@ import {
   MapPin,
   Cpu,
   BarChart3,
-  Flame,
   Droplets,
   Sprout,
 } from "lucide-react";
 
 export default function HomePage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <div style={{ flex: 1 }}>
@@ -53,7 +54,7 @@ export default function HomePage() {
               }}
             >
               <Satellite size={16} />
-              <span>Copernicus Sentinel 2 Multi-Spectral Analytics</span>
+              <span>{t("home.badge")}</span>
             </div>
 
             <h1
@@ -66,7 +67,7 @@ export default function HomePage() {
                 marginBottom: "20px",
               }}
             >
-              Precision Agriculture Through Satellite Telemetry
+              {t("home.heroTitle")}
             </h1>
 
             <p
@@ -80,7 +81,7 @@ export default function HomePage() {
                 marginLeft: "auto",
               }}
             >
-              AgriSat provides automated multispectral index extraction, vegetative health tracking, moisture anomaly alarms, and farm polygon mapping.
+              {t("home.heroSubtitle")}
             </p>
 
             {/* CTA Buttons */}
@@ -96,12 +97,20 @@ export default function HomePage() {
               {user ? (
                 <>
                   <Link
-                    href="/profile"
+                    href="/service"
                     className="btn btn-primary"
                     style={{ padding: "12px 24px", fontSize: "1rem" }}
                   >
+                    <Satellite size={18} />
+                    <span>{t("home.ctaExplore")}</span>
+                  </Link>
+                  <Link
+                    href="/profile"
+                    className="btn btn-secondary"
+                    style={{ padding: "12px 24px", fontSize: "1rem" }}
+                  >
                     <UserIcon size={18} />
-                    <span>View Operator Profile</span>
+                    <span>{t("home.ctaProfile")}</span>
                   </Link>
                 </>
               ) : (
@@ -112,8 +121,8 @@ export default function HomePage() {
                     style={{ padding: "12px 26px", fontSize: "1rem" }}
                   >
                     <UserPlus size={18} />
-                    <span>Create Free Account</span>
-                    <ArrowRight size={16} />
+                    <span>{t("home.ctaRegister")}</span>
+                    <ArrowRight size={16} className="icon-flip" />
                   </Link>
                   <Link
                     href="/login"
@@ -121,7 +130,7 @@ export default function HomePage() {
                     style={{ padding: "12px 24px", fontSize: "1rem" }}
                   >
                     <LogIn size={18} />
-                    <span>Sign In</span>
+                    <span>{t("home.ctaSignIn")}</span>
                   </Link>
                 </>
               )}
@@ -142,15 +151,15 @@ export default function HomePage() {
             >
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <CheckCircle2 size={16} color="var(--primary)" />
-                <span>10m Spatial Resolution</span>
+                <span>{t("home.statResolution")}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <CheckCircle2 size={16} color="var(--primary)" />
-                <span>FastAPI 8-Day JWT Tokens</span>
+                <span>{t("home.statRevisit")}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <CheckCircle2 size={16} color="var(--primary)" />
-                <span>Sentinel Hub Copernicus API</span>
+                <span>{t("home.statTelemetry")}</span>
               </div>
             </div>
           </div>
@@ -169,10 +178,10 @@ export default function HomePage() {
                 marginBottom: "8px",
               }}
             >
-              Spectral Indices & Analytics Suite
+              {t("home.capabilitiesTitle")}
             </h2>
             <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
-              Engineered for agronomists, farm operators, and agricultural researchers
+              {t("footer.brandDesc")}
             </p>
           </div>
 
@@ -202,10 +211,10 @@ export default function HomePage() {
                 <Sprout size={22} />
               </div>
               <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "8px" }}>
-                NDVI Vegetation Index
+                {t("home.capIndicesTitle")}
               </h3>
               <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
-                Normalized Difference Vegetation Index calculates biomass density and photosynthetic vigor across target farm polygons.
+                {t("home.capIndicesDesc")}
               </p>
             </div>
 
@@ -228,10 +237,10 @@ export default function HomePage() {
                 <Droplets size={22} />
               </div>
               <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "8px" }}>
-                NDWI Moisture Analysis
+                {t("home.capSentinelTitle")}
               </h3>
               <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
-                Normalized Difference Water Index quantifies canopy moisture and detects irrigation deficits before visual wilting occurs.
+                {t("home.capSentinelDesc")}
               </p>
             </div>
 
@@ -254,10 +263,10 @@ export default function HomePage() {
                 <Activity size={22} />
               </div>
               <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "8px" }}>
-                NDRE & EVI Dynamics
+                {t("home.capAlertsTitle")}
               </h3>
               <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
-                Red Edge and Enhanced Vegetation Indices analyze dense canopies without saturation, uncovering chlorophyll changes.
+                {t("home.capAlertsDesc")}
               </p>
             </div>
 
@@ -280,10 +289,10 @@ export default function HomePage() {
                 <MapPin size={22} />
               </div>
               <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "8px" }}>
-                Farm Polygon Registry
+                {t("home.capSpatialTitle")}
               </h3>
               <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
-                Draw and link geojson coordinates to your account profile for continuous automated satellite revisit acquisitions.
+                {t("home.capSpatialDesc")}
               </p>
             </div>
           </div>
@@ -315,24 +324,24 @@ export default function HomePage() {
                   marginBottom: "4px",
                 }}
               >
-                Ready for Integration
+                {t("home.badge")}
               </div>
               <h3 style={{ fontSize: "1.3rem", fontWeight: 800, marginBottom: "6px" }}>
-                Connected to AgriSat Asynchronous Backend
+                {t("home.readyTitle")}
               </h3>
               <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", maxWidth: "560px" }}>
-                The authentication system connects directly to your local FastAPI backend running on port 8000. Register your account and test your profile today.
+                {t("home.readySubtitle")}
               </p>
             </div>
 
             <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
               <Link href="/register" className="btn btn-primary">
                 <UserPlus size={16} />
-                <span>Register Account</span>
+                <span>{t("home.registerNowBtn")}</span>
               </Link>
               <Link href="/login" className="btn btn-secondary">
                 <LogIn size={16} />
-                <span>Sign In</span>
+                <span>{t("home.ctaSignIn")}</span>
               </Link>
             </div>
           </div>

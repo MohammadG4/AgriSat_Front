@@ -9,6 +9,7 @@ import {
   updateCropOnLandApi,
   getToken,
 } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface CropRegistrationModalProps {
   landId: number;
@@ -25,6 +26,7 @@ export default function CropRegistrationModal({
   onClose,
   onSuccess,
 }: CropRegistrationModalProps) {
+  const { t, isRTL } = useLanguage();
   const isEditing = !!initialCrop;
 
   const [availableCrops, setAvailableCrops] = useState<Crop[]>([]);
@@ -178,10 +180,10 @@ export default function CropRegistrationModal({
             </div>
             <div>
               <div style={{ fontWeight: 800, fontSize: "1.05rem", color: "#F8FAFC" }}>
-                {isEditing ? "Edit Registered Crop" : "Register New Crop"}
+                {isEditing ? t("modals.cropEditHeader") : t("modals.cropAddHeader")}
               </div>
               <div style={{ fontSize: "0.74rem", color: "#64748B" }}>
-                {landName ? `Land: ${landName}` : `Land ID #${landId}`} &bull; Crop Lifecycle Registry
+                {landName ? `${landName}` : `#${landId}`} &bull; Crop Lifecycle Registry
               </div>
             </div>
           </div>
@@ -230,10 +232,10 @@ export default function CropRegistrationModal({
                   letterSpacing: "0.03em",
                 }}
               >
-                Crop Name <span style={{ color: "#10B981" }}>*</span>
+                {t("modals.cropTypeLabel")} <span style={{ color: "#10B981" }}>*</span>
               </label>
               {fetchingCrops ? (
-                <div style={{ color: "#64748B", fontSize: "0.85rem" }}>Loading crop catalog...</div>
+                <div style={{ color: "#64748B", fontSize: "0.85rem" }}>{t("modals.cropCatalogLoading")}</div>
               ) : (
                 <select
                   value={selectedCropId}
@@ -250,7 +252,7 @@ export default function CropRegistrationModal({
                     outline: "none",
                   }}
                 >
-                  <option value="" disabled>Select crop from catalog...</option>
+                  <option value="" disabled>{t("modals.cropCatalogSelect")}</option>
                   {availableCrops.map((c) => (
                     <option key={c.id} value={c.id} style={{ backgroundColor: "#0F172A", color: "#F8FAFC" }}>
                       {c.crop_name} {c.description ? `— ${c.description.slice(0, 45)}...` : ""}
@@ -276,7 +278,7 @@ export default function CropRegistrationModal({
                 }}
               >
                 <Calendar size={13} style={{ color: "#10B981" }} />
-                <span>Planting Date <span style={{ color: "#10B981" }}>*</span></span>
+                <span>{t("modals.plantingDateLabel")} <span style={{ color: "#10B981" }}>*</span></span>
               </label>
               <input
                 type="date"
@@ -330,7 +332,7 @@ export default function CropRegistrationModal({
                   userSelect: "none",
                 }}
               >
-                In Ground / Actively Growing (Harvest pending)
+                {t("modals.inGroundCheckbox")}
               </label>
             </div>
 
@@ -347,7 +349,7 @@ export default function CropRegistrationModal({
                   letterSpacing: "0.03em",
                 }}
               >
-                {inGround ? "Expected Harvest Date" : "Actual Harvest Date"}
+                {inGround ? t("modals.expectedHarvestDate") : t("modals.actualHarvestDate")}
                 {!inGround && <span style={{ color: "#F59E0B", marginLeft: "4px" }}>*</span>}
               </label>
               <input
@@ -390,13 +392,13 @@ export default function CropRegistrationModal({
                 }}
               >
                 <Tag size={13} style={{ color: "#10B981" }} />
-                <span>Season</span>
+                <span>{t("modals.seasonLabel")}</span>
               </label>
               <input
                 type="text"
                 value={season}
                 onChange={(e) => setSeason(e.target.value)}
-                placeholder="e.g. Summer 2026, Winter 2025"
+                placeholder={t("modals.seasonPlaceholder")}
                 style={{
                   width: "100%",
                   padding: "10px 14px",
@@ -429,7 +431,7 @@ export default function CropRegistrationModal({
               disabled={loading}
               style={{ padding: "8px 16px", fontSize: "0.85rem" }}
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
@@ -444,11 +446,11 @@ export default function CropRegistrationModal({
               }}
             >
               {loading ? (
-                <span>Saving...</span>
+                <span>{t("common.loading")}</span>
               ) : (
                 <>
                   <CheckCircle size={16} />
-                  <span>{isEditing ? "Save Changes" : "Register Crop"}</span>
+                  <span>{isEditing ? t("modals.updateDetails") : t("service.registerCrop")}</span>
                 </>
               )}
             </button>

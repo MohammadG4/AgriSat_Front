@@ -4,17 +4,20 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   Satellite,
   User as UserIcon,
   LogOut,
   LogIn,
   UserPlus,
+  Globe,
 } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { t, locale, toggleLocale } = useLanguage();
 
   if (pathname === "/service/register-land") {
     return null;
@@ -98,7 +101,7 @@ export default function Navbar() {
                 fontWeight: 500,
               }}
             >
-              Satellite Crop Intelligence
+              {t("nav.brandSubtitle")}
             </div>
           </div>
         </Link>
@@ -121,7 +124,7 @@ export default function Navbar() {
               transition: "color 0.15s ease",
             }}
           >
-            Home
+            {t("nav.home")}
           </Link>
 
           <Link
@@ -137,7 +140,7 @@ export default function Navbar() {
               gap: "6px",
             }}
           >
-            Service
+            {t("nav.service")}
           </Link>
 
           {user && (
@@ -153,7 +156,7 @@ export default function Navbar() {
                 transition: "color 0.15s ease",
               }}
             >
-              Your Lands
+              {t("nav.lands")}
             </Link>
           )}
 
@@ -170,13 +173,36 @@ export default function Navbar() {
                 transition: "color 0.15s ease",
               }}
             >
-              My Profile
+              {t("nav.profile")}
             </Link>
           )}
         </nav>
 
-        {/* Auth CTA */}
+        {/* Language Switcher & Auth CTA */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <button
+            onClick={toggleLocale}
+            className="btn btn-secondary"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "6px 14px",
+              fontSize: "0.825rem",
+              fontWeight: 700,
+              backgroundColor: "rgba(16, 185, 129, 0.1)",
+              borderColor: "rgba(16, 185, 129, 0.35)",
+              color: "var(--primary)",
+              cursor: "pointer",
+              borderRadius: "20px",
+              transition: "all 0.2s ease",
+            }}
+            title={locale === "en" ? "تبديل إلى العربية" : "Switch to English"}
+          >
+            <Globe size={15} />
+            <span>{t("nav.language")}</span>
+          </button>
+
           {user ? (
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <Link
@@ -197,7 +223,7 @@ export default function Navbar() {
               <button
                 onClick={logout}
                 className="btn btn-secondary"
-                title="Sign Out"
+                title={t("nav.signOut")}
                 style={{
                   padding: "8px 12px",
                   color: "var(--text-dim)",
@@ -217,7 +243,7 @@ export default function Navbar() {
                 }}
               >
                 <LogIn size={16} />
-                <span>Sign In</span>
+                <span>{t("nav.signIn")}</span>
               </Link>
               <Link
                 href="/register"
@@ -228,7 +254,7 @@ export default function Navbar() {
                 }}
               >
                 <UserPlus size={16} />
-                <span>Register</span>
+                <span>{t("nav.register")}</span>
               </Link>
             </div>
           )}

@@ -16,6 +16,7 @@ import {
   Info,
 } from "lucide-react";
 import { Land, VegetationIndexSet } from "@/types/farm";
+import { useLanguage } from "@/context/LanguageContext";
 import { formatAreaKm2 } from "./geoUtils";
 
 interface FeatureDetailsPanelProps {
@@ -29,6 +30,7 @@ export default function FeatureDetailsPanel({
   satelliteData = [],
   onClose,
 }: FeatureDetailsPanelProps) {
+  const { t } = useLanguage();
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Derive stats or realistic agronomic satellite simulation
@@ -106,7 +108,7 @@ export default function FeatureDetailsPanel({
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <h2 style={{ fontSize: "1.35rem", fontWeight: 800, margin: 0, color: "#F8FAFC" }}>
-                  Sentinel-2 NDVI Vegetation Health Analytics
+                  {t("service.analyticsTitle")}
                 </h2>
                 <span
                   style={{
@@ -119,13 +121,13 @@ export default function FeatureDetailsPanel({
                     fontWeight: 700,
                   }}
                 >
-                  LIVE TELEMETRY
+                  {t("service.liveTelemetry")}
                 </span>
               </div>
               <div style={{ fontSize: "0.82rem", color: "#94A3B8", marginTop: "4px" }}>
-                Applied to Parcel: <strong style={{ color: "#E2E8F0" }}>{land.name}</strong> (#{land.id})
+                {t("service.appliedToParcel")}: <strong style={{ color: "#E2E8F0" }}>{land.name}</strong> (#{land.id})
                 {land.location ? ` &bull; ${land.location}` : ""} &bull;{" "}
-                Area: {land.area_hectares != null ? formatAreaKm2(land.area_hectares) : "Calculated Polygon"}
+                {t("common.area")}: {land.area_hectares != null ? formatAreaKm2(land.area_hectares) : t("service.calculatedPolygon")}
               </div>
             </div>
           </div>
@@ -149,7 +151,7 @@ export default function FeatureDetailsPanel({
             }}
           >
             <ChevronUp size={16} />
-            <span>Collapse Details</span>
+            <span>{t("service.closeInspector")}</span>
           </button>
         </div>
 
@@ -172,7 +174,7 @@ export default function FeatureDetailsPanel({
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
-                Mean Canopy Health (NDVI)
+                {t("service.meanNdvi")}
               </span>
               <Activity size={16} style={{ color: "#10B981" }} />
             </div>
@@ -180,7 +182,7 @@ export default function FeatureDetailsPanel({
               {meanNdvi}
             </div>
             <div style={{ fontSize: "0.75rem", color: "#34D399", marginTop: "4px" }}>
-              ✓ High Vigorous Canopy Coverage
+              ✓ {t("service.healthyVegetation")}
             </div>
           </div>
 
@@ -194,7 +196,7 @@ export default function FeatureDetailsPanel({
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
-                Peak Biomass (Max)
+                {t("service.maxNdvi")}
               </span>
               <TrendingUp size={16} style={{ color: "#38BDF8" }} />
             </div>
@@ -202,7 +204,7 @@ export default function FeatureDetailsPanel({
               {maxNdvi}
             </div>
             <div style={{ fontSize: "0.75rem", color: "#7DD3FC", marginTop: "4px" }}>
-              Dense center pivot vegetation
+              {t("service.healthyVegetation")}
             </div>
           </div>
 
@@ -216,7 +218,7 @@ export default function FeatureDetailsPanel({
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
-                Stress Hotspots (Min)
+                {t("service.minNdvi")}
               </span>
               <AlertTriangle size={16} style={{ color: "#F59E0B" }} />
             </div>
@@ -224,7 +226,7 @@ export default function FeatureDetailsPanel({
               {minNdvi}
             </div>
             <div style={{ fontSize: "0.75rem", color: "#FCD34D", marginTop: "4px" }}>
-              Perimeter irrigation edge margin
+              {t("service.stressedVegetation")}
             </div>
           </div>
 
@@ -238,7 +240,7 @@ export default function FeatureDetailsPanel({
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
-                Spatial Variance (STD)
+                {t("service.variance")}
               </span>
               <BarChart3 size={16} style={{ color: "#A78BFA" }} />
             </div>
@@ -246,7 +248,7 @@ export default function FeatureDetailsPanel({
               &plusmn;{stdNdvi}
             </div>
             <div style={{ fontSize: "0.75rem", color: "#C4B5FD", marginTop: "4px" }}>
-              Uniform growth distribution
+              {t("common.active")}
             </div>
           </div>
         </div>
@@ -272,10 +274,10 @@ export default function FeatureDetailsPanel({
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
               <div>
                 <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>
-                  Sentinel-2 Multi-Temporal Progression Curve
+                  {t("service.timeSeriesTitle")}
                 </div>
                 <div style={{ fontSize: "0.75rem", color: "#94A3B8" }}>
-                  5-day revisit cycle spectral index over parcel boundary
+                  {t("home.statRevisitSub")}
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.72rem", color: "#10B981" }}>
@@ -361,17 +363,17 @@ export default function FeatureDetailsPanel({
           >
             <div>
               <div style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: "4px" }}>
-                Canopy Density Profile
+                {t("service.vegetationIndexLegend")}
               </div>
               <div style={{ fontSize: "0.75rem", color: "#94A3B8", marginBottom: "16px" }}>
-                Spectral pixel classification within polygon
+                {t("service.analyticsTitle")}
               </div>
 
               {/* Distribution bars */}
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", marginBottom: "4px" }}>
-                    <span style={{ color: "#34D399" }}>Dense &amp; Robust (&gt; 0.7)</span>
+                    <span style={{ color: "#34D399" }}>{t("service.healthyVegetation")} (&gt; 0.7)</span>
                     <span style={{ fontWeight: 700 }}>71%</span>
                   </div>
                   <div style={{ height: "6px", backgroundColor: "rgba(255,255,255,0.06)", borderRadius: "3px", overflow: "hidden" }}>
@@ -381,7 +383,7 @@ export default function FeatureDetailsPanel({
 
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", marginBottom: "4px" }}>
-                    <span style={{ color: "#38BDF8" }}>Moderate Growth (0.45 - 0.7)</span>
+                    <span style={{ color: "#38BDF8" }}>{t("service.moderateVegetation")} (0.45 - 0.7)</span>
                     <span style={{ fontWeight: 700 }}>21%</span>
                   </div>
                   <div style={{ height: "6px", backgroundColor: "rgba(255,255,255,0.06)", borderRadius: "3px", overflow: "hidden" }}>
@@ -391,7 +393,7 @@ export default function FeatureDetailsPanel({
 
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", marginBottom: "4px" }}>
-                    <span style={{ color: "#F59E0B" }}>Low / Stressed (0.25 - 0.45)</span>
+                    <span style={{ color: "#F59E0B" }}>{t("service.stressedVegetation")} (0.25 - 0.45)</span>
                     <span style={{ fontWeight: 700 }}>6%</span>
                   </div>
                   <div style={{ height: "6px", backgroundColor: "rgba(255,255,255,0.06)", borderRadius: "3px", overflow: "hidden" }}>
@@ -401,7 +403,7 @@ export default function FeatureDetailsPanel({
 
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", marginBottom: "4px" }}>
-                    <span style={{ color: "#EF4444" }}>Bare Soil / Fallow (&lt; 0.25)</span>
+                    <span style={{ color: "#EF4444" }}>{t("service.bareSoil")} (&lt; 0.25)</span>
                     <span style={{ fontWeight: 700 }}>2%</span>
                   </div>
                   <div style={{ height: "6px", backgroundColor: "rgba(255,255,255,0.06)", borderRadius: "3px", overflow: "hidden" }}>
@@ -449,7 +451,7 @@ export default function FeatureDetailsPanel({
               cursor: "pointer",
             }}
           >
-            ↑ Back to Map View
+            ↑ {t("common.viewOnMap")}
           </button>
         </div>
       </div>

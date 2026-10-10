@@ -22,6 +22,7 @@ import {
   Compass,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   getLandByIdApi,
   getLandCropsApi,
@@ -42,6 +43,7 @@ function LandDetailsContent() {
   const landId = landIdParam ? parseInt(landIdParam, 10) : null;
 
   const { user, isLoading } = useAuth();
+  const { t, locale, isRTL } = useLanguage();
   const [land, setLand] = useState<Land | null>(null);
   const [crops, setCrops] = useState<CropOnLand[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -275,8 +277,8 @@ function LandDetailsContent() {
               cursor: "pointer",
             }}
           >
-            <ArrowLeft size={16} />
-            <span>Back to Lands</span>
+            <ArrowLeft size={16} className="icon-flip" />
+            <span>{t("landDetails.backToLands")}</span>
           </button>
 
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -292,7 +294,7 @@ function LandDetailsContent() {
               }}
             >
               <Sliders size={15} style={{ color: "#F59E0B" }} />
-              <span>Configure Alert Options</span>
+              <span>{t("alertOptions.title")}</span>
             </Link>
 
             <Link
@@ -307,7 +309,7 @@ function LandDetailsContent() {
               }}
             >
               <Compass size={15} style={{ color: "#38BDF8" }} />
-              <span>View On Live Map</span>
+              <span>{t("common.viewOnMap")}</span>
             </Link>
           </div>
         </div>
@@ -370,8 +372,8 @@ function LandDetailsContent() {
                   </span>
                 </div>
                 <div style={{ fontSize: "0.82rem", color: "#94A3B8", marginTop: "4px" }}>
-                  {land.location || "Egypt Agricultural Basin"} &bull; Created:{" "}
-                  {new Date(land.created_date).toLocaleDateString()}
+                  {land.location || "Egypt Basin"} &bull; {t("common.date")}:{" "}
+                  {new Date(land.created_date).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US")}
                 </div>
               </div>
             </div>
@@ -392,7 +394,7 @@ function LandDetailsContent() {
                   }}
                 >
                   <Edit2 size={15} />
-                  <span>Edit Details</span>
+                  <span>{t("landDetails.editLandBtn")}</span>
                 </button>
 
                 <button
@@ -416,7 +418,7 @@ function LandDetailsContent() {
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.12)")}
                 >
                   <Trash2 size={15} />
-                  <span>Delete Land</span>
+                  <span>{t("landDetails.deleteLandBtn")}</span>
                 </button>
               </div>
             ) : (
@@ -436,7 +438,7 @@ function LandDetailsContent() {
                   disabled={savingLand}
                   style={{ padding: "8px 16px", fontSize: "0.84rem" }}
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="button"
@@ -452,7 +454,7 @@ function LandDetailsContent() {
                   }}
                 >
                   <CheckCircle size={15} />
-                  <span>{savingLand ? "Saving..." : "Save Changes"}</span>
+                  <span>{savingLand ? t("common.saving") : t("landDetails.saveChanges")}</span>
                 </button>
               </div>
             )}
@@ -469,7 +471,7 @@ function LandDetailsContent() {
             {/* Editable Field: Land Name */}
             <div>
               <label style={{ display: "block", fontSize: "0.74rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase", marginBottom: "6px" }}>
-                Land Parcel Name
+                {t("modals.parcelNameLabel")}
               </label>
               {isEditingLand ? (
                 <input
@@ -496,7 +498,7 @@ function LandDetailsContent() {
             {/* Editable Field: Location */}
             <div>
               <label style={{ display: "block", fontSize: "0.74rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase", marginBottom: "6px" }}>
-                Location / Region
+                {t("modals.locationLabel")}
               </label>
               {isEditingLand ? (
                 <input
@@ -524,26 +526,26 @@ function LandDetailsContent() {
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
                 <span style={{ fontSize: "0.74rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>
-                  Calculated Parcel Area (km²)
+                  {t("landDetails.area")} ({t("common.km2")})
                 </span>
                 <Lock size={12} style={{ color: "#F59E0B" }} />
               </div>
               <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#10B981" }}>
-                {land.area_hectares != null ? formatAreaKm2(land.area_hectares) : "Calculated Polygon"}
+                {land.area_hectares != null ? formatAreaKm2(land.area_hectares) : t("common.calculatedPolygon")}
               </div>
-              <span style={{ fontSize: "0.68rem", color: "#64748B" }}>Strictly locked to drawn geospatial polygon</span>
+              <span style={{ fontSize: "0.68rem", color: "#64748B" }}>{t("common.calculatedPolygon")}</span>
             </div>
 
             {/* STRICTLY UNEDITABLE: System Creation Date & ID */}
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
                 <span style={{ fontSize: "0.74rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>
-                  Registration Timestamp
+                  {t("common.date")}
                 </span>
                 <Lock size={12} style={{ color: "#F59E0B" }} />
               </div>
               <div style={{ fontSize: "0.95rem", color: "#CBD5E1" }}>
-                {new Date(land.created_date).toLocaleString()}
+                {new Date(land.created_date).toLocaleString(locale === "ar" ? "ar-EG" : "en-US")}
               </div>
               <span style={{ fontSize: "0.68rem", color: "#64748B" }}>Immutable system log</span>
             </div>
@@ -551,7 +553,7 @@ function LandDetailsContent() {
             {/* Editable Field: Soil Type */}
             <div>
               <label style={{ display: "block", fontSize: "0.74rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase", marginBottom: "6px" }}>
-                Soil Classification
+                {t("common.soilType")}
               </label>
               {isEditingLand ? (
                 <select
@@ -568,9 +570,9 @@ function LandDetailsContent() {
                     outline: "none",
                   }}
                 >
-                  <option value="Clay">Clay (Delta alluvial)</option>
-                  <option value="Sandy">Sandy (Desert reclamation)</option>
-                  <option value="Loam">Loam / Silt</option>
+                  <option value="Clay">{t("common.clay")}</option>
+                  <option value="Sandy">{t("common.sandy")}</option>
+                  <option value="Loam">{t("common.loam")}</option>
                   <option value="Calcareous">Calcareous</option>
                   <option value="Saline">Saline Soil</option>
                 </select>
@@ -582,7 +584,7 @@ function LandDetailsContent() {
             {/* Editable Field: Irrigation Type */}
             <div>
               <label style={{ display: "block", fontSize: "0.74rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase", marginBottom: "6px" }}>
-                Irrigation System
+                {t("common.irrigationType")}
               </label>
               {isEditingLand ? (
                 <select
@@ -599,10 +601,10 @@ function LandDetailsContent() {
                     outline: "none",
                   }}
                 >
-                  <option value="Drip">Drip Irrigation</option>
-                  <option value="Center Pivot">Center Pivot Sprinkler</option>
-                  <option value="Flood / Surface">Flood / Surface Canal</option>
-                  <option value="Sub-surface">Sub-surface</option>
+                  <option value="Drip">{t("common.drip")}</option>
+                  <option value="Center Pivot">{t("common.centerPivot")}</option>
+                  <option value="Flood / Surface">{t("common.flood")}</option>
+                  <option value="Sub-surface">{t("common.subSurface")}</option>
                 </select>
               ) : (
                 <div style={{ fontSize: "0.95rem", color: "#E2E8F0" }}>{land.irrigation_type || "Drip"}</div>
@@ -640,7 +642,7 @@ function LandDetailsContent() {
                   <Sprout size={20} />
                 </div>
                 <h2 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0 }}>
-                  Crop Rotation &amp; Planting History
+                  {t("landDetails.cropsHeader")}
                 </h2>
                 <span
                   style={{
@@ -652,15 +654,12 @@ function LandDetailsContent() {
                     fontWeight: 700,
                   }}
                 >
-                  {crops.length} Records
+                  {crops.length}
                 </span>
               </div>
-              <p style={{ color: "#94A3B8", fontSize: "0.8rem", marginTop: "4px" }}>
-                Chronologically sorted timeline of crops cultivated on this parcel.
-              </p>
             </div>
 
-            {/* "Register a new crop for the land" Button (Section 5.3) */}
+            {/* "Register a new crop for the land" Button */}
             <button
               type="button"
               onClick={() => {
@@ -677,7 +676,7 @@ function LandDetailsContent() {
               }}
             >
               <Plus size={16} />
-              <span>Register New Crop for Land</span>
+              <span>{t("landDetails.registerCropBtn")}</span>
             </button>
           </div>
 
@@ -694,10 +693,10 @@ function LandDetailsContent() {
             >
               <Sprout size={32} style={{ color: "#64748B", margin: "0 auto 12px auto" }} />
               <div style={{ fontWeight: 700, color: "#E2E8F0", fontSize: "1rem" }}>
-                No Crop History Registered
+                {t("landDetails.noCrops")}
               </div>
               <p style={{ color: "#94A3B8", fontSize: "0.82rem", maxWidth: "420px", margin: "6px auto 18px auto" }}>
-                Track seasonal yields, planting dates, and growth stages by registering your active or past crops.
+                Track seasonal yields, planting dates, and growth stages.
               </p>
               <button
                 type="button"
@@ -709,7 +708,7 @@ function LandDetailsContent() {
                 style={{ fontSize: "0.84rem", padding: "8px 18px" }}
               >
                 <Plus size={15} />
-                <span>Register First Crop</span>
+                <span>{t("landDetails.addFirstCrop")}</span>
               </button>
             </div>
           ) : (

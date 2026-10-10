@@ -5,18 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   MapPin,
-  Layers,
   Plus,
-  ArrowRight,
   Sliders,
   FileText,
   Search,
-  Calendar,
   Compass,
-  CheckCircle,
-  ExternalLink,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { getLandsApi, getToken } from "@/lib/api";
 import { Land } from "@/types/farm";
 import { formatAreaKm2 } from "@/components/service/geoUtils";
@@ -25,11 +21,12 @@ import Loader from "@/components/Loader";
 export default function LandsDirectoryPage() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
+  const { t, locale, isRTL } = useLanguage();
   const [lands, setLands] = useState<Land[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchFilter, setSearchFilter] = useState<string>("");
 
-  // Route Protection (Requirement 2)
+  // Route Protection
   useEffect(() => {
     if (!isLoading && !user && !getToken()) {
       router.replace("/login");
@@ -54,7 +51,7 @@ export default function LandsDirectoryPage() {
   }, [user]);
 
   if (isLoading || (!user && !getToken())) {
-    return <Loader fullPage size="lg" message="Authenticating session..." />;
+    return <Loader fullPage size="lg" message={t("lands.authenticating")} />;
   }
 
   const filteredLands = lands.filter((l) => {
@@ -101,7 +98,7 @@ export default function LandsDirectoryPage() {
                   margin: 0,
                 }}
               >
-                Your Lands Directory
+                {t("lands.title")}
               </h1>
               <span
                 style={{
@@ -114,11 +111,11 @@ export default function LandsDirectoryPage() {
                   fontWeight: 700,
                 }}
               >
-                {lands.length} {lands.length === 1 ? "Parcel" : "Parcels"}
+                {lands.length} {t("common.polygon")}
               </span>
             </div>
             <p style={{ color: "#94A3B8", fontSize: "0.88rem", marginTop: "6px" }}>
-              Comprehensive registry of your active agricultural holdings and automated satellite telemetry watches.
+              {t("lands.subtitle")}
             </p>
           </div>
 
@@ -135,7 +132,7 @@ export default function LandsDirectoryPage() {
               }}
             >
               <Compass size={16} style={{ color: "#38BDF8" }} />
-              <span>Open Live Map</span>
+              <span>{t("common.viewOnMap")}</span>
             </Link>
 
             <button
@@ -151,7 +148,7 @@ export default function LandsDirectoryPage() {
               }}
             >
               <Plus size={16} />
-              <span>Register New Land</span>
+              <span>{t("lands.registerNewBtn")}</span>
             </button>
           </div>
         </div>
@@ -169,7 +166,7 @@ export default function LandsDirectoryPage() {
               size={17}
               style={{
                 position: "absolute",
-                left: "14px",
+                [isRTL ? "right" : "left"]: "14px",
                 top: "50%",
                 transform: "translateY(-50%)",
                 color: "#64748B",
@@ -177,12 +174,12 @@ export default function LandsDirectoryPage() {
             />
             <input
               type="text"
-              placeholder="Search lands by name, location, or ID..."
+              placeholder={t("lands.searchPlaceholder")}
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
               style={{
                 width: "100%",
-                padding: "10px 14px 10px 42px",
+                padding: isRTL ? "10px 42px 10px 14px" : "10px 14px 10px 42px",
                 borderRadius: "10px",
                 backgroundColor: "rgba(15, 23, 42, 0.7)",
                 border: "1px solid rgba(255, 255, 255, 0.12)",
@@ -196,7 +193,7 @@ export default function LandsDirectoryPage() {
 
         {/* Content State */}
         {loading ? (
-          <Loader size="md" message="Loading registered lands directory..." />
+          <Loader size="md" message={t("lands.loadingLands")} />
         ) : lands.length === 0 ? (
           <div
             style={{
@@ -225,10 +222,10 @@ export default function LandsDirectoryPage() {
               <MapPin size={26} />
             </div>
             <h3 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: "8px" }}>
-              No Lands Registered Yet
+              {t("lands.noLandsTitle")}
             </h3>
             <p style={{ color: "#94A3B8", fontSize: "0.85rem", marginBottom: "24px" }}>
-              Draw your farm boundary on our high-resolution satellite map to unlock NDVI monitoring and automated alerts.
+              {t("lands.noLandsDesc")}
             </p>
             <button
               type="button"
@@ -237,15 +234,14 @@ export default function LandsDirectoryPage() {
               style={{ padding: "10px 22px", fontSize: "0.88rem" }}
             >
               <Plus size={16} />
-              <span>Register Your First Land</span>
+              <span>{t("lands.registerFirstBtn")}</span>
             </button>
           </div>
         ) : filteredLands.length === 0 ? (
           <div style={{ textAlign: "center", padding: "60px 20px", color: "#64748B" }}>
-            No lands match your search query &ldquo;{searchFilter}&rdquo;.
+            {t("lands.noResultsTitle")} &ldquo;{searchFilter}&rdquo;.
           </div>
         ) : (
-          /* Grid of Horizontal Cards (Requirement 3) */
           <div
             style={{
               display: "flex",
@@ -329,11 +325,11 @@ export default function LandsDirectoryPage() {
                         {land.location ? (
                           <span>{land.location}</span>
                         ) : (
-                          <span style={{ color: "#64748B" }}>Egypt Agricultural Basin</span>
+                          <span style={{ color: "#64748B" }}>Egypt Basin</span>
                         )}
                         <span>&bull;</span>
                         <span style={{ color: "#64748B" }}>
-                          Registered: {new Date(land.created_date).toLocaleDateString()}
+                          {new Date(land.created_date).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US")}
                         </span>
                       </div>
                     </div>
@@ -350,16 +346,16 @@ export default function LandsDirectoryPage() {
                   >
                     <div>
                       <div style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 700, textTransform: "uppercase" }}>
-                        Parcel Area
+                        {t("common.area")}
                       </div>
                       <div style={{ fontSize: "1rem", fontWeight: 800, color: "#34D399", marginTop: "2px" }}>
-                        {land.area_hectares != null ? formatAreaKm2(land.area_hectares) : "Calculated"}
+                        {land.area_hectares != null ? formatAreaKm2(land.area_hectares) : t("common.calculatedPolygon")}
                       </div>
                     </div>
 
                     <div>
                       <div style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 700, textTransform: "uppercase" }}>
-                        Soil &amp; Irrigation
+                        {t("common.soilType")} &amp; {t("common.irrigationType")}
                       </div>
                       <div style={{ fontSize: "0.88rem", fontWeight: 600, color: "#E2E8F0", marginTop: "2px" }}>
                         {land.soil_type || "Standard"} &bull; {land.irrigation_type || "Drip"}
@@ -368,7 +364,7 @@ export default function LandsDirectoryPage() {
 
                     <div>
                       <div style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 700, textTransform: "uppercase" }}>
-                        Telemetry Status
+                        {t("common.status")}
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "3px" }}>
                         <span
@@ -381,15 +377,14 @@ export default function LandsDirectoryPage() {
                           }}
                         />
                         <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#10B981" }}>
-                          Active Watch
+                          {t("common.active")}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Right: The Two Primary Action Buttons (Requirement 3) */}
+                  {/* Right: The Two Primary Action Buttons */}
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    {/* Primary Button 1: Land details */}
                     <button
                       type="button"
                       onClick={() => router.push(`/lands/landdetails?land_id=${land.id}`)}
@@ -407,10 +402,9 @@ export default function LandsDirectoryPage() {
                       }}
                     >
                       <FileText size={15} style={{ color: "#10B981" }} />
-                      <span>Land details</span>
+                      <span>{t("common.viewDetails")}</span>
                     </button>
 
-                    {/* Primary Button 2: Alert Options */}
                     <button
                       type="button"
                       onClick={() => router.push(`/lands/AlertOptions?land_id=${land.id}`)}
@@ -425,7 +419,7 @@ export default function LandsDirectoryPage() {
                       }}
                     >
                       <Sliders size={15} />
-                      <span>Alert Options</span>
+                      <span>{t("alertOptions.title")}</span>
                     </button>
                   </div>
                 </div>

@@ -2,10 +2,13 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
+import { useLanguage } from "@/context/LanguageContext";
 import { Satellite, Shield, Cpu, Globe } from "lucide-react";
 
 export default function Footer() {
   const pathname = usePathname();
+  const { t } = useLanguage();
+
   if (pathname?.startsWith("/service")) {
     return null;
   }
@@ -54,7 +57,7 @@ export default function Footer() {
                 lineHeight: 1.6,
               }}
             >
-              Multispectral satellite analytics platform for precision crop monitoring, vegetation index analysis, and yield optimization.
+              {t("footer.brandDesc")}
             </p>
           </div>
 
@@ -69,7 +72,7 @@ export default function Footer() {
                 letterSpacing: "0.05em",
               }}
             >
-              System Capabilities
+              {t("footer.capabilities")}
             </h4>
             <ul
               style={{
@@ -82,13 +85,13 @@ export default function Footer() {
               }}
             >
               <li style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <Cpu size={14} color="var(--primary)" /> Sentinel 2 MSI Processing
+                <Cpu size={14} color="var(--primary)" /> {t("footer.sentinelProcessing")}
               </li>
               <li style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <Globe size={14} color="var(--primary)" /> NDVI, NDRE, NDWI, EVI Indices
+                <Globe size={14} color="var(--primary)" /> {t("footer.indices")}
               </li>
               <li style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <Shield size={14} color="var(--primary)" /> Anomaly and Stress Detection
+                <Shield size={14} color="var(--primary)" /> {t("footer.anomalyDetection")}
               </li>
             </ul>
           </div>
@@ -104,7 +107,7 @@ export default function Footer() {
                 letterSpacing: "0.05em",
               }}
             >
-              Architecture
+              {t("footer.architecture")}
             </h4>
             <p
               style={{
@@ -113,7 +116,7 @@ export default function Footer() {
                 lineHeight: 1.6,
               }}
             >
-              FastAPI asynchronous backend connected with Sentinel Hub Copernicus Data Space Ecosystem and modern Next.js frontend.
+              {t("footer.archDesc")}
             </p>
           </div>
         </div>
@@ -132,10 +135,10 @@ export default function Footer() {
           }}
         >
           <div>
-            &copy; {new Date().getFullYear()} AgriSat Crop Intelligence Platform. All rights reserved.
+            &copy; {new Date().getFullYear()} {t("footer.rights")}
           </div>
           <div>
-            System Version 1.0.0 (FastAPI Core / Next.js)
+            {t("footer.version")}
           </div>
         </div>
       </div>

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   User as UserIcon,
   Mail,
@@ -23,6 +24,7 @@ import {
 export default function RegisterPage() {
   const router = useRouter();
   const { register, login, user } = useAuth();
+  const { t } = useLanguage();
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -59,17 +61,17 @@ export default function RegisterPage() {
     setSuccessMsg("");
 
     if (!formData.email || !formData.password) {
-      setErrorMsg("Email and password are required.");
+      setErrorMsg(t("register.fillRequired"));
       return;
     }
 
     if (formData.password.length < 8) {
-      setErrorMsg("Password must be at least 8 characters in length.");
+      setErrorMsg(t("register.passwordTooShort"));
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setErrorMsg("Passwords do not match. Please re-enter.");
+      setErrorMsg(t("register.passwordsMismatch"));
       return;
     }
 
@@ -84,9 +86,7 @@ export default function RegisterPage() {
         date_of_birth: formData.dob || undefined,
       });
 
-      setSuccessMsg(
-        "Account created successfully. Automatically authenticating session..."
-      );
+      setSuccessMsg(t("register.successMsg"));
 
       // Attempt immediate login for seamless UX
       try {
@@ -157,7 +157,7 @@ export default function RegisterPage() {
               marginBottom: "8px",
             }}
           >
-            Create Your Account
+            {t("register.title")}
           </h1>
           <p
             style={{
@@ -165,7 +165,7 @@ export default function RegisterPage() {
               color: "var(--text-muted)",
             }}
           >
-            Join AgriSat to monitor crop health with Copernicus satellite telemetry
+            {t("register.subtitle")}
           </p>
         </div>
 
@@ -196,7 +196,7 @@ export default function RegisterPage() {
             >
               <div className="form-group">
                 <label className="form-label" htmlFor="register-first-name">
-                  First Name
+                  {t("register.firstNameLabel")}
                 </label>
                 <div className="input-icon-wrapper">
                   <UserIcon size={18} className="input-icon" />
@@ -205,7 +205,7 @@ export default function RegisterPage() {
                     name="firstName"
                     type="text"
                     className="form-input"
-                    placeholder="Alexander"
+                    placeholder={t("register.firstNamePlaceholder")}
                     value={formData.firstName}
                     onChange={handleChange}
                   />
@@ -214,7 +214,7 @@ export default function RegisterPage() {
 
               <div className="form-group">
                 <label className="form-label" htmlFor="register-last-name">
-                  Last Name
+                  {t("register.lastNameLabel")}
                 </label>
                 <div className="input-icon-wrapper">
                   <UserIcon size={18} className="input-icon" />
@@ -223,7 +223,7 @@ export default function RegisterPage() {
                     name="lastName"
                     type="text"
                     className="form-input"
-                    placeholder="Miller"
+                    placeholder={t("register.lastNamePlaceholder")}
                     value={formData.lastName}
                     onChange={handleChange}
                   />
@@ -234,7 +234,7 @@ export default function RegisterPage() {
             {/* Email Address */}
             <div className="form-group">
               <label className="form-label" htmlFor="register-email">
-                Email Address
+                {t("register.emailLabel")}
               </label>
               <div className="input-icon-wrapper">
                 <Mail size={18} className="input-icon" />
@@ -245,7 +245,7 @@ export default function RegisterPage() {
                   required
                   autoComplete="email"
                   className="form-input"
-                  placeholder="analyst@agrisat.com"
+                  placeholder={t("register.emailPlaceholder")}
                   value={formData.email}
                   onChange={handleChange}
                 />
@@ -262,7 +262,7 @@ export default function RegisterPage() {
             >
               <div className="form-group">
                 <label className="form-label" htmlFor="register-phone">
-                  Phone Number
+                  {t("register.phoneLabel")}
                 </label>
                 <div className="input-icon-wrapper">
                   <Phone size={18} className="input-icon" />
@@ -271,7 +271,7 @@ export default function RegisterPage() {
                     name="phone"
                     type="tel"
                     className="form-input"
-                    placeholder="+1 555 0192"
+                    placeholder={t("register.phonePlaceholder")}
                     value={formData.phone}
                     onChange={handleChange}
                   />
@@ -280,7 +280,7 @@ export default function RegisterPage() {
 
               <div className="form-group">
                 <label className="form-label" htmlFor="register-dob">
-                  Date of Birth
+                  {t("common.date")}
                 </label>
                 <div className="input-icon-wrapper">
                   <Calendar size={18} className="input-icon" />
@@ -306,7 +306,7 @@ export default function RegisterPage() {
             >
               <div className="form-group">
                 <label className="form-label" htmlFor="register-password">
-                  Password
+                  {t("register.passwordLabel")}
                 </label>
                 <div className="input-icon-wrapper">
                   <Lock size={18} className="input-icon" />
@@ -316,7 +316,7 @@ export default function RegisterPage() {
                     type={showPassword ? "text" : "password"}
                     required
                     className="form-input"
-                    placeholder="Min. 8 characters"
+                    placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
                   />
@@ -333,7 +333,7 @@ export default function RegisterPage() {
 
               <div className="form-group">
                 <label className="form-label" htmlFor="register-confirm-password">
-                  Confirm Password
+                  {t("register.confirmPasswordLabel")}
                 </label>
                 <div className="input-icon-wrapper">
                   <Lock size={18} className="input-icon" />
@@ -343,7 +343,7 @@ export default function RegisterPage() {
                     type={showPassword ? "text" : "password"}
                     required
                     className="form-input"
-                    placeholder="Re-enter password"
+                    placeholder="••••••••"
                     value={formData.confirmPassword}
                     onChange={handleChange}
                   />
@@ -363,7 +363,7 @@ export default function RegisterPage() {
               }}
             >
               <Shield size={14} color="var(--primary)" />
-              Password must be at least 8 characters long.
+              {t("register.passwordTooShort")}
             </div>
 
             {/* Submit Button */}
@@ -378,11 +378,11 @@ export default function RegisterPage() {
               }}
             >
               {isSubmitting ? (
-                <>Provisioning account...</>
+                <>{t("register.registering")}</>
               ) : (
                 <>
                   <UserPlus size={18} />
-                  <span>Create Account</span>
+                  <span>{t("register.registerBtn")}</span>
                 </>
               )}
             </button>
@@ -418,7 +418,7 @@ export default function RegisterPage() {
             color: "var(--text-muted)",
           }}
         >
-          Already have an account?{" "}
+          {t("register.haveAccount")}{" "}
           <Link
             href="/login"
             style={{
@@ -429,7 +429,8 @@ export default function RegisterPage() {
               gap: "4px",
             }}
           >
-            Sign in here <ArrowRight size={14} />
+            {t("register.signInLink")}{" "}
+            <ArrowRight size={14} className="icon-flip" />
           </Link>
         </div>
       </div>

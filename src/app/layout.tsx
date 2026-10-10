@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -23,13 +24,15 @@ export default function RootLayout({
           flexDirection: "column",
         }}
       >
-        <AuthProvider>
-          <Navbar />
-          <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            {children}
-          </main>
-          <Footer />
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <Navbar />
+            <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+              {children}
+            </main>
+            <Footer />
+          </AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

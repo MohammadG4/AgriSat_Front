@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   User as UserIcon,
   Mail,
@@ -27,6 +28,7 @@ import Loader from "@/components/Loader";
 export default function ProfilePage() {
   const router = useRouter();
   const { user, isLoading, logout, refreshUser } = useAuth();
+  const { t, locale } = useLanguage();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = async () => {
@@ -41,7 +43,7 @@ export default function ProfilePage() {
   };
 
   if (isLoading) {
-    return <Loader fullPage size="lg" message="Retrieving user credentials..." />;
+    return <Loader fullPage size="lg" message={t("profile.retrievingCredentials")} />;
   }
 
   if (!user) {
@@ -79,7 +81,7 @@ export default function ProfilePage() {
               color: "var(--text-main)",
             }}
           >
-            Session Authentication Required
+            {t("profile.notLoggedInTitle")}
           </h2>
           <p
             style={{
@@ -89,15 +91,15 @@ export default function ProfilePage() {
               lineHeight: 1.6,
             }}
           >
-            You must be logged in to inspect your operator profile and satellite monitoring telemetry.
+            {t("profile.notLoggedInDesc")}
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <Link href="/login" className="btn btn-primary" style={{ width: "100%" }}>
               <LogIn size={18} />
-              <span>Go to Sign In</span>
+              <span>{t("profile.signInBtn")}</span>
             </Link>
             <Link href="/register" className="btn btn-secondary" style={{ width: "100%" }}>
-              <span>Create New Account</span>
+              <span>{t("home.ctaRegister")}</span>
             </Link>
           </div>
         </div>
@@ -113,20 +115,20 @@ export default function ProfilePage() {
       : user.email.slice(0, 2).toUpperCase();
 
   const formattedCreated = user.created_at
-    ? new Date(user.created_at).toLocaleDateString("en-US", {
+    ? new Date(user.created_at).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
       })
-    : "Active Member";
+    : t("profile.activeVerified");
 
   const formattedUpdated = user.updated_at
-    ? new Date(user.updated_at).toLocaleDateString("en-US", {
+    ? new Date(user.updated_at).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
       })
-    : "Current Session";
+    : t("common.active");
 
   return (
     <div className="container" style={{ padding: "40px 24px 60px 24px" }}>
@@ -180,15 +182,15 @@ export default function ProfilePage() {
 
               {user.is_active ? (
                 <span className="badge badge-success">
-                  <CheckCircle2 size={12} /> Active
+                  <CheckCircle2 size={12} /> {t("common.active")}
                 </span>
               ) : (
-                <span className="badge badge-warning">Inactive</span>
+                <span className="badge badge-warning">{t("common.inactive")}</span>
               )}
 
               {user.is_verified ? (
                 <span className="badge badge-success">
-                  <ShieldCheck size={12} /> Verified
+                  <ShieldCheck size={12} /> {t("profile.activeVerified")}
                 </span>
               ) : (
                 <span className="badge badge-neutral">Unverified</span>
@@ -207,7 +209,7 @@ export default function ProfilePage() {
               <Mail size={15} color="var(--text-dim)" />
               <span>{user.email}</span>
               <span style={{ color: "var(--border-subtle)" }}>|</span>
-              <span>Operator ID #{user.id}</span>
+              <span>{t("profile.userId")}: #{user.id}</span>
             </div>
           </div>
         </div>
@@ -216,14 +218,14 @@ export default function ProfilePage() {
           <button
             onClick={handleRefresh}
             className="btn btn-secondary"
-            title="Refresh Account Data"
+            title={t("profile.refreshBtn")}
             disabled={isRefreshing}
           >
-            <span>{isRefreshing ? "Refreshing..." : "Refresh"}</span>
+            <span>{isRefreshing ? t("common.loading") : t("profile.refreshBtn")}</span>
           </button>
           <button onClick={handleLogout} className="btn btn-danger">
             <LogOut size={16} />
-            <span>Sign Out</span>
+            <span>{t("profile.signOutBtn")}</span>
           </button>
         </div>
       </div>
@@ -250,7 +252,7 @@ export default function ProfilePage() {
           >
             <UserIcon size={20} color="var(--primary)" />
             <h2 style={{ fontSize: "1.1rem", fontWeight: 700 }}>
-              Account Information
+              {t("profile.personalInfo")}
             </h2>
           </div>
 
@@ -266,12 +268,12 @@ export default function ProfilePage() {
                   marginBottom: "4px",
                 }}
               >
-                Full Name
+                {t("profile.fullName")}
               </div>
               <div style={{ fontSize: "0.95rem", fontWeight: 500, color: "var(--text-main)" }}>
                 {user.first_name || user.last_name
                   ? `${user.first_name || ""} ${user.last_name || ""}`.trim()
-                  : "Not configured"}
+                  : "—"}
               </div>
             </div>
 
@@ -286,7 +288,7 @@ export default function ProfilePage() {
                   marginBottom: "4px",
                 }}
               >
-                Registered Email
+                {t("profile.email")}
               </div>
               <div
                 style={{
@@ -314,7 +316,7 @@ export default function ProfilePage() {
                   marginBottom: "4px",
                 }}
               >
-                Contact Phone
+                {t("profile.phone")}
               </div>
               <div
                 style={{
@@ -327,7 +329,7 @@ export default function ProfilePage() {
                 }}
               >
                 <Phone size={16} color="var(--primary)" />
-                {user.phone_number || "Not specified"}
+                {user.phone_number || "—"}
               </div>
             </div>
 
@@ -342,7 +344,7 @@ export default function ProfilePage() {
                   marginBottom: "4px",
                 }}
               >
-                Date of Birth
+                {t("common.date")}
               </div>
               <div
                 style={{
@@ -355,7 +357,7 @@ export default function ProfilePage() {
                 }}
               >
                 <Calendar size={16} color="var(--primary)" />
-                {user.date_of_birth || "Not specified"}
+                {user.date_of_birth || "—"}
               </div>
             </div>
 
@@ -370,7 +372,7 @@ export default function ProfilePage() {
                   marginBottom: "4px",
                 }}
               >
-                Registration Date
+                {t("profile.memberSince")}
               </div>
               <div
                 style={{
@@ -403,7 +405,7 @@ export default function ProfilePage() {
           >
             <Shield size={20} color="var(--primary)" />
             <h2 style={{ fontSize: "1.1rem", fontWeight: 700 }}>
-              Security and Authorization
+              {t("profile.platformOverview")}
             </h2>
           </div>
 
@@ -419,10 +421,10 @@ export default function ProfilePage() {
                   marginBottom: "4px",
                 }}
               >
-                Authentication Protocol
+                {t("profile.serviceAccessTitle")}
               </div>
               <div style={{ fontSize: "0.95rem", fontWeight: 500, color: "var(--text-main)" }}>
-                OAuth2 Password Bearer with JWT HS256
+                {t("profile.serviceAccessDesc")}
               </div>
             </div>
 
@@ -437,7 +439,7 @@ export default function ProfilePage() {
                   marginBottom: "4px",
                 }}
               >
-                Password Status
+                {t("profile.landsAccessTitle")}
               </div>
               <div
                 style={{
@@ -450,43 +452,7 @@ export default function ProfilePage() {
                 }}
               >
                 <Key size={16} color="var(--primary)" />
-                Bcrypt Cryptographic Hash (Secured)
-              </div>
-            </div>
-
-            <div>
-              <div
-                style={{
-                  fontSize: "0.775rem",
-                  fontWeight: 600,
-                  color: "var(--text-dim)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  marginBottom: "4px",
-                }}
-              >
-                Session Life
-              </div>
-              <div style={{ fontSize: "0.95rem", fontWeight: 500, color: "var(--text-main)" }}>
-                8 Days Refresh Window
-              </div>
-            </div>
-
-            <div>
-              <div
-                style={{
-                  fontSize: "0.775rem",
-                  fontWeight: 600,
-                  color: "var(--text-dim)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  marginBottom: "4px",
-                }}
-              >
-                Last Synchronized
-              </div>
-              <div style={{ fontSize: "0.95rem", fontWeight: 500, color: "var(--text-main)" }}>
-                {formattedUpdated}
+                {t("profile.landsAccessDesc")}
               </div>
             </div>
 
@@ -501,7 +467,7 @@ export default function ProfilePage() {
                 color: "var(--text-muted)",
               }}
             >
-              Account security conforms to FastAPI RBAC policies. All requests are authenticated with a signed bearer header.
+              FastAPI OAuth2 Engine &bull; Bearer JWT HS256 &bull; Bcrypt Cryptographic Hash
             </div>
           </div>
         </div>
@@ -520,7 +486,7 @@ export default function ProfilePage() {
           >
             <Satellite size={20} color="var(--primary)" />
             <h2 style={{ fontSize: "1.1rem", fontWeight: 700 }}>
-              Satellite Telemetry Access
+              {t("nav.service")}
             </h2>
           </div>
 
@@ -540,7 +506,7 @@ export default function ProfilePage() {
                 <Layers size={18} color="var(--primary)" />
                 <span style={{ fontSize: "0.9rem", fontWeight: 600 }}>Sentinel Hub Pipeline</span>
               </div>
-              <span className="badge badge-success">Online</span>
+              <span className="badge badge-success">{t("common.active")}</span>
             </div>
 
             <div
@@ -556,9 +522,9 @@ export default function ProfilePage() {
             >
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <Activity size={18} color="var(--primary)" />
-                <span style={{ fontSize: "0.9rem", fontWeight: 600 }}>Indices Engine (NDVI, NDRE)</span>
+                <span style={{ fontSize: "0.9rem", fontWeight: 600 }}>NDVI, NDRE, NDWI</span>
               </div>
-              <span className="badge badge-success">Active</span>
+              <span className="badge badge-success">{t("common.active")}</span>
             </div>
 
             <div
@@ -574,18 +540,27 @@ export default function ProfilePage() {
             >
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <Bell size={18} color="var(--primary)" />
-                <span style={{ fontSize: "0.9rem", fontWeight: 600 }}>Crop Anomaly Alerts</span>
+                <span style={{ fontSize: "0.9rem", fontWeight: 600 }}>{t("alertOptions.title")}</span>
               </div>
-              <span className="badge badge-neutral">Enabled</span>
+              <span className="badge badge-neutral">{t("alertOptions.active")}</span>
             </div>
 
-            <div style={{ marginTop: "8px" }}>
+            <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "8px" }}>
               <Link
-                href="/"
+                href="/service"
+                className="btn btn-primary"
+                style={{ width: "100%", justifyContent: "center" }}
+              >
+                <Satellite size={16} />
+                <span>{t("home.ctaExplore")}</span>
+              </Link>
+              <Link
+                href="/lands"
                 className="btn btn-secondary"
                 style={{ width: "100%", justifyContent: "center" }}
               >
-                Return to Overview
+                <Layers size={16} />
+                <span>{t("lands.title")}</span>
               </Link>
             </div>
           </div>

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   Mail,
   Lock,
@@ -19,6 +20,7 @@ import {
 export default function LoginPage() {
   const router = useRouter();
   const { login, user } = useAuth();
+  const { t } = useLanguage();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,7 +40,7 @@ export default function LoginPage() {
     setErrorMsg("");
 
     if (!email || !password) {
-      setErrorMsg("Please provide both email and password.");
+      setErrorMsg(t("login.fillBothError"));
       return;
     }
 
@@ -50,7 +52,7 @@ export default function LoginPage() {
       if (err instanceof Error) {
         setErrorMsg(err.message);
       } else {
-        setErrorMsg("Failed to authenticate. Please check server connection.");
+        setErrorMsg(t("login.failedAuth"));
       }
     } finally {
       setIsSubmitting(false);
@@ -105,7 +107,7 @@ export default function LoginPage() {
               marginBottom: "8px",
             }}
           >
-            Welcome Back
+            {t("login.title")}
           </h1>
           <p
             style={{
@@ -113,7 +115,7 @@ export default function LoginPage() {
               color: "var(--text-muted)",
             }}
           >
-            Sign in to access your satellite farm monitoring console
+            {t("login.subtitle")}
           </p>
         </div>
 
@@ -130,7 +132,7 @@ export default function LoginPage() {
             {/* Email Field */}
             <div className="form-group">
               <label className="form-label" htmlFor="login-email">
-                Email Address
+                {t("login.emailLabel")}
               </label>
               <div className="input-icon-wrapper">
                 <Mail size={18} className="input-icon" />
@@ -140,7 +142,7 @@ export default function LoginPage() {
                   required
                   autoComplete="email"
                   className="form-input"
-                  placeholder="analyst@agrisat.com"
+                  placeholder={t("login.emailPlaceholder")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -150,7 +152,7 @@ export default function LoginPage() {
             {/* Password Field */}
             <div className="form-group">
               <div className="form-label">
-                <label htmlFor="login-password">Password</label>
+                <label htmlFor="login-password">{t("login.passwordLabel")}</label>
               </div>
               <div className="input-icon-wrapper">
                 <Lock size={18} className="input-icon" />
@@ -160,7 +162,7 @@ export default function LoginPage() {
                   required
                   autoComplete="current-password"
                   className="form-input"
-                  placeholder="Enter your account password"
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -188,11 +190,11 @@ export default function LoginPage() {
               }}
             >
               {isSubmitting ? (
-                <>Authenticating credentials...</>
+                <>{t("login.signingIn")}</>
               ) : (
                 <>
                   <LogIn size={18} />
-                  <span>Sign In</span>
+                  <span>{t("login.signInBtn")}</span>
                 </>
               )}
             </button>
@@ -228,7 +230,7 @@ export default function LoginPage() {
             color: "var(--text-muted)",
           }}
         >
-          Do not have an AgriSat account?{" "}
+          {t("login.noAccount")}{" "}
           <Link
             href="/register"
             style={{
@@ -239,7 +241,8 @@ export default function LoginPage() {
               gap: "4px",
             }}
           >
-            Register now <ArrowRight size={14} />
+            {t("login.registerLink")}{" "}
+            <ArrowRight size={14} className="icon-flip" />
           </Link>
         </div>
       </div>

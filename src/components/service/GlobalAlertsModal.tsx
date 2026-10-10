@@ -5,6 +5,7 @@ import { X, Bell, AlertTriangle, ShieldAlert, MapPin, Calendar, RefreshCw } from
 import { Land } from "@/types/farm";
 import { AlertNotification } from "@/types/alert";
 import { getTriggeredAlertsApi, getToken } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface GlobalAlertsModalProps {
   lands: Land[];
@@ -23,6 +24,7 @@ export default function GlobalAlertsModal({
   onClose,
   onNavigateToLand,
 }: GlobalAlertsModalProps) {
+  const { t, isRTL } = useLanguage();
   const [filterMode, setFilterMode] = useState<"all" | "selected">("all");
   const [alerts, setAlerts] = useState<AlertWithLand[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,10 +101,10 @@ export default function GlobalAlertsModal({
             </div>
             <div>
               <div style={{ fontWeight: 800, fontSize: "1.05rem" }}>
-                System Alerts &amp; Notifications
+                {t("modals.globalAlertsHeader")}
               </div>
               <div style={{ fontSize: "0.75rem", color: "#64748B" }}>
-                Active triggers sorted by acquisition date
+                {t("modals.globalAlertsSubtitle")}
               </div>
             </div>
           </div>
@@ -136,7 +138,7 @@ export default function GlobalAlertsModal({
               borderBottom: filterMode === "all" ? "2px solid #10B981" : "2px solid transparent",
             }}
           >
-            All Registered Lands ({lands.length})
+            {t("modals.allRegisteredLands")} ({lands.length})
           </button>
 
           {selectedLand && (
@@ -151,7 +153,7 @@ export default function GlobalAlertsModal({
                 borderBottom: filterMode === "selected" ? "2px solid #10B981" : "2px solid transparent",
               }}
             >
-              Current: {selectedLand.name}
+              {t("modals.currentLand")} {selectedLand.name}
             </button>
           )}
         </div>
@@ -171,16 +173,16 @@ export default function GlobalAlertsModal({
               }}
             >
               <RefreshCw size={22} className="spin-animation" />
-              <span>Checking active anomalies across lands...</span>
+              <span>{t("modals.checkingAnomalies")}</span>
             </div>
           ) : alerts.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px 20px", color: "#94A3B8" }}>
               <ShieldAlert size={36} style={{ color: "#10B981", marginBottom: "12px" }} />
               <div style={{ fontWeight: 700, color: "#E2E8F0", marginBottom: "4px" }}>
-                No Active Anomalies Detected
+                {t("modals.noAnomaliesDetected")}
               </div>
               <p style={{ fontSize: "0.82rem", color: "#64748B" }}>
-                All parcels have median NDVI indices adhering to scientific baselines.
+                {t("modals.noAnomaliesDesc")}
               </p>
             </div>
           ) : (
@@ -233,15 +235,25 @@ export default function GlobalAlertsModal({
                     <span
                       className={`badge ${
                         alert.severity === "critical"
+                          ? "badge-danger"
+                          : alert.severity === "high"
                           ? "badge-warning"
-                          : "badge-warning"
+                          : alert.severity === "medium"
+                          ? "badge-info"
+                          : "badge-success"
                       }`}
                       style={{ textTransform: "uppercase" }}
                     >
-                      {alert.severity}
+                      {alert.severity === "critical"
+                        ? t("alertOptions.severityCritical")
+                        : alert.severity === "high"
+                        ? t("alertOptions.severityHigh")
+                        : alert.severity === "medium"
+                        ? t("alertOptions.severityMedium")
+                        : t("alertOptions.severityLow")}
                     </span>
                     <span style={{ fontSize: "0.7rem", color: "#10B981", fontWeight: 600 }}>
-                      View on Map &rarr;
+                      {t("modals.viewOnMap")} {isRTL ? "←" : "→"}
                     </span>
                   </div>
                 </div>
@@ -252,7 +264,7 @@ export default function GlobalAlertsModal({
 
         <div className="modal-footer">
           <button type="button" className="btn btn-secondary" onClick={onClose}>
-            Close
+            {t("common.cancel")}
           </button>
         </div>
       </div>

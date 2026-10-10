@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { GeoJsonPolygon, LandCreatePayload } from "@/types/farm";
 import { createLandApi, createAlertScenarioApi, getToken } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   parseCoordinates,
   calculatePolygonAreaKm2,
@@ -36,9 +37,15 @@ const DEFAULT_MAPBOX_TOKEN =
 
 export default function DedicatedRegisterLandMap() {
   const router = useRouter();
+  const { t, locale, isRTL } = useLanguage();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
+
+  const localeRef = useRef(locale);
+  useEffect(() => {
+    localeRef.current = locale;
+  }, [locale]);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -101,39 +108,45 @@ export default function DedicatedRegisterLandMap() {
       setMapBearing(Math.round(map.getBearing()));
     });
 
-    // ── Arabic label persistence ──────────────────────────────────
-    let arabicLabelTimer: ReturnType<typeof setTimeout> | null = null;
+    // ── Label persistence (English / Arabic dynamically) ───────────
+    let labelTimer: ReturnType<typeof setTimeout> | null = null;
 
-    const setArabicLabels = () => {
-      if (arabicLabelTimer) return;
-      arabicLabelTimer = setTimeout(() => {
-        arabicLabelTimer = null;
-        const style = map.getStyle();
-        if (!style?.layers) return;
-        style.layers.forEach((layer) => {
-          if (
-            layer.type === "symbol" &&
-            layer.layout &&
-            (layer.layout as any)["text-field"]
-          ) {
-            try {
-              map.setLayoutProperty(layer.id, "text-field", [
-                "coalesce",
-                ["get", "name_ar"],
-                ["get", "name"],
-              ]);
-            } catch {
-              // ignore
+    const applyMapLabels = () => {
+      if (labelTimer) return;
+      labelTimer = setTimeout(() => {
+        labelTimer = null;
+        if (!map || !map.isStyleLoaded()) return;
+        try {
+          const style = map.getStyle();
+          if (!style?.layers) return;
+          const targetField = localeRef.current === "ar" ? "name_ar" : "name_en";
+          style.layers.forEach((layer) => {
+            if (
+              layer.type === "symbol" &&
+              layer.layout &&
+              (layer.layout as any)["text-field"]
+            ) {
+              try {
+                map.setLayoutProperty(layer.id, "text-field", [
+                  "coalesce",
+                  ["get", targetField],
+                  ["get", "name"],
+                ]);
+              } catch {
+                // ignore
+              }
             }
-          }
-        });
+          });
+        } catch {
+          // ignore if style not ready
+        }
       }, 50);
     };
 
-    map.on("style.load", setArabicLabels);
-    map.on("sourcedata", setArabicLabels);
-    map.once("idle", setArabicLabels);
-    // ── End Arabic label persistence ──────────────────────────────
+    map.on("style.load", applyMapLabels);
+    map.on("sourcedata", applyMapLabels);
+    map.once("idle", applyMapLabels);
+    // ── End Label persistence ──────────────────────────────────────
 
     // Drawing tools
     const draw = new MapboxDraw({
@@ -148,8 +161,8 @@ export default function DedicatedRegisterLandMap() {
     map.addControl(draw, "top-right");
 
     map.on("load", () => {
-      // Apply Arabic labels immediately on first load
-      setArabicLabels();
+      // Apply labels immediately on first load
+      applyMapLabels();
     });
 
     // Drawing handlers: save polygon and validate strictly within Egypt
@@ -185,10 +198,50 @@ export default function DedicatedRegisterLandMap() {
     });
 
     return () => {
-      if (arabicLabelTimer) clearTimeout(arabicLabelTimer);
+      if (labelTimer) clearTimeout(labelTimer);
       map.remove();
     };
   }, []);
+
+  // Update map vector labels dynamically when language changes
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const updateLabels = () => {
+      try {
+        if (!map.isStyleLoaded()) return;
+        const style = map.getStyle();
+        if (!style?.layers) return;
+        const targetField = locale === "ar" ? "name_ar" : "name_en";
+        style.layers.forEach((layer) => {
+          if (
+            layer.type === "symbol" &&
+            layer.layout &&
+            (layer.layout as any)["text-field"]
+          ) {
+            try {
+              map.setLayoutProperty(layer.id, "text-field", [
+                "coalesce",
+                ["get", targetField],
+                ["get", "name"],
+              ]);
+            } catch {
+              // ignore locked layers
+            }
+          }
+        });
+      } catch {
+        // style not ready yet
+      }
+    };
+
+    if (map.isStyleLoaded()) {
+      updateLabels();
+    } else {
+      map.once("style.load", updateLabels);
+    }
+  }, [locale]);
 
   // Search execution
   const handleSearch = useCallback(async (query: string) => {
@@ -361,11 +414,11 @@ export default function DedicatedRegisterLandMap() {
           type="button"
           onClick={() => router.push("/service")}
           className="hud-pill hud-btn"
-          title="Return to Crop Health Service"
+          title={t("common.back")}
           style={{ padding: "10px 14px" }}
         >
-          <ArrowLeft size={16} />
-          <span>Back</span>
+          <ArrowLeft size={16} className={isRTL ? "icon-flip" : ""} />
+          <span>{t("common.back")}</span>
         </button>
 
         {/* Compass / North Reset Button */}
@@ -384,7 +437,7 @@ export default function DedicatedRegisterLandMap() {
               transition: "transform 0.2s ease-out",
             }}
           />
-          <span>North {mapBearing !== 0 ? `(${mapBearing}°)` : ""}</span>
+          <span>{t("service.north")} {mapBearing !== 0 ? `(${mapBearing}°)` : ""}</span>
         </button>
 
         {/* Search Bar */}
@@ -394,7 +447,7 @@ export default function DedicatedRegisterLandMap() {
             <input
               type="text"
               className="map-search-input"
-              placeholder="Search location in Egypt (Arabic/English) or coordinates..."
+              placeholder={t("service.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -433,7 +486,7 @@ export default function DedicatedRegisterLandMap() {
       {/* Top Centered Instruction Banner */}
       <div className="registration-instruction-banner">
         <PenTool size={16} style={{ color: "#10B981" }} />
-        <span>Select your new land on the map</span>
+        <span>{t("registerLand.selectLandOnMap")}</span>
       </div>
 
       {/* Floating "Continue" Button: Only shown after user draws boundaries */}
@@ -443,14 +496,14 @@ export default function DedicatedRegisterLandMap() {
           className="registration-continue-fab"
           onClick={() => {
             if (drawnPolygon && !isPolygonInsideEgypt(drawnPolygon.coordinates[0])) {
-              setError("Selected land must be strictly within Egyptian territory.");
+              setError(t("registerLand.errorOutsideEgypt"));
               return;
             }
             setShowDetailsForm(true);
           }}
         >
-          <span>Continue ({formatAreaKm2(approxKm2, true)})</span>
-          <ArrowRight size={18} />
+          <span>{t("registerLand.continueBtn")} ({formatAreaKm2(approxKm2, true)})</span>
+          <ArrowRight size={18} className={isRTL ? "icon-flip" : ""} />
         </button>
       )}
 
@@ -476,10 +529,10 @@ export default function DedicatedRegisterLandMap() {
                 </div>
                 <div>
                   <div style={{ fontWeight: 800, fontSize: "1.05rem" }}>
-                    Confirm Land Details
+                    {t("registerLand.confirmDetailsTitle")}
                   </div>
                   <div style={{ fontSize: "0.75rem", color: "#64748B" }}>
-                    Area: ~{formatAreaKm2(approxKm2, true)} &bull; PostGIS Geometry
+                    {t("lands.area")}: ~{formatAreaKm2(approxKm2, true)} &bull; PostGIS Geometry
                   </div>
                 </div>
               </div>
@@ -511,7 +564,7 @@ export default function DedicatedRegisterLandMap() {
 
                 <div className="form-group">
                   <label className="form-label">
-                    <span>Land Name *</span>
+                    <span>{t("modals.parcelNameLabel")} *</span>
                   </label>
                   <input
                     type="text"
@@ -526,7 +579,7 @@ export default function DedicatedRegisterLandMap() {
 
                 <div className="form-group">
                   <label className="form-label">
-                    <span>Location / Region</span>
+                    <span>{t("modals.locationLabel")}</span>
                   </label>
                   <input
                     type="text"
@@ -540,39 +593,39 @@ export default function DedicatedRegisterLandMap() {
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
                   <div className="form-group">
-                    <label className="form-label">Soil Type</label>
+                    <label className="form-label">{t("modals.soilTypeLabel")}</label>
                     <select
                       className="form-input"
                       value={soilType}
                       onChange={(e) => setSoilType(e.target.value)}
                       disabled={submitting}
                     >
-                      <option value="Clay">Clay</option>
-                      <option value="Sandy">Sandy</option>
-                      <option value="Loam">Loam</option>
-                      <option value="Silty Clay">Silty Clay</option>
-                      <option value="Peat">Peat</option>
+                      <option value="Clay">{t("landDetails.soilClay")}</option>
+                      <option value="Sandy">{t("landDetails.soilSandy")}</option>
+                      <option value="Loam">{t("landDetails.soilLoam")}</option>
+                      <option value="Silty Clay">{t("landDetails.soilSiltyClay")}</option>
+                      <option value="Peat">{t("landDetails.soilPeat")}</option>
                     </select>
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Irrigation System</label>
+                    <label className="form-label">{t("modals.irrigationTypeLabel")}</label>
                     <select
                       className="form-input"
                       value={irrigationType}
                       onChange={(e) => setIrrigationType(e.target.value)}
                       disabled={submitting}
                     >
-                      <option value="Drip">Drip Irrigation</option>
-                      <option value="Sprinkler">Center Pivot / Sprinkler</option>
-                      <option value="Surface">Surface / Flood</option>
-                      <option value="Sub-surface">Sub-surface</option>
+                      <option value="Drip">{t("landDetails.irrigationDrip")}</option>
+                      <option value="Sprinkler">{t("landDetails.irrigationPivot")}</option>
+                      <option value="Surface">{t("landDetails.irrigationSurface")}</option>
+                      <option value="Sub-surface">{t("landDetails.irrigationSubSurface")}</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="form-group" style={{ marginBottom: "12px" }}>
-                  <label className="form-label">Notes (Optional)</label>
+                  <label className="form-label">{t("modals.notesLabel")}</label>
                   <textarea
                     className="form-input"
                     rows={2}
@@ -599,10 +652,10 @@ export default function DedicatedRegisterLandMap() {
                   <CheckCircle size={16} style={{ flexShrink: 0, marginTop: "2px", color: "#10B981" }} />
                   <div>
                     <div style={{ fontWeight: 700, marginBottom: "2px" }}>
-                      Automated NDVI Scenarios Setup
+                      {t("registerLand.autoScenariosTitle")}
                     </div>
                     <div style={{ color: "#94A3B8", fontSize: "0.75rem" }}>
-                      Upon confirmation, Rapid Drop (15%) and Spatial Anomaly (15% drop over 20% area) alert scenarios will be automatically provisioned for this land.
+                      {t("registerLand.autoScenariosDesc")}
                     </div>
                   </div>
                 </div>
@@ -615,14 +668,14 @@ export default function DedicatedRegisterLandMap() {
                   onClick={() => setShowDetailsForm(false)}
                   disabled={submitting}
                 >
-                  Adjust Boundary
+                  {t("registerLand.adjustBoundary")}
                 </button>
                 <button
                   type="submit"
                   className="btn btn-primary"
                   disabled={submitting}
                 >
-                  {submitting ? "Creating & Activating..." : "Confirm & Create Land"}
+                  {submitting ? t("registerLand.creatingAndActivating") : t("registerLand.confirmAndCreate")}
                 </button>
               </div>
             </form>

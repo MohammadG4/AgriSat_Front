@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "clean": "node -e \"const fs=require('fs'); fs.rmSync('.next', {recursive: true, force: true});\"",
+    "dev:clean": "npm run clean && next dev",
     "prebuild": "node -e \"const fs=require('fs'); fs.mkdirSync('.next/diagnostics', {recursive: true});\"",
     "build": "next build",
     "start": "next start"

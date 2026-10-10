@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { Land } from "@/types/farm";
 import { AlertNotification } from "@/types/alert";
+import { useLanguage } from "@/context/LanguageContext";
 import { formatAreaKm2 } from "./geoUtils";
 
 interface ServiceLeftNavProps {
@@ -55,6 +56,7 @@ export default function ServiceLeftNav({
   isLoggedIn,
 }: ServiceLeftNavProps) {
   const router = useRouter();
+  const { t, isRTL } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [dropdownState, setDropdownState] = useState<{
     land: Land;
@@ -109,7 +111,7 @@ export default function ServiceLeftNav({
             }}
           >
             <span className="sidebar-header" style={{ marginBottom: 0, paddingLeft: 0 }}>
-              Features
+              {t("service.imageryLayers")}
             </span>
 
             {/* Global Alerts Button */}
@@ -132,7 +134,7 @@ export default function ServiceLeftNav({
               }}
             >
               <Bell size={13} />
-              <span>Alerts</span>
+              <span>{t("service.globalAlerts")}</span>
               {totalAlertsCount > 0 && (
                 <span
                   style={{
@@ -167,11 +169,11 @@ export default function ServiceLeftNav({
             >
               <div className="layer-left">
                 <Activity size={18} />
-                <span>Health Map (NDVI)</span>
+                <span>{t("service.ndviLayer")}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <span style={{ fontSize: "0.68rem", color: "#10B981", fontWeight: 700 }}>
-                  {isFeatureDetailsOpen ? "Details ▼" : "Details ▲"}
+                  {isFeatureDetailsOpen ? "▼" : "▲"}
                 </span>
                 <span
                   style={{
@@ -189,7 +191,7 @@ export default function ServiceLeftNav({
             <button type="button" className="layer-item disabled" disabled>
               <div className="layer-left">
                 <Droplets size={18} />
-                <span>Water &amp; Soil Moisture</span>
+                <span>{t("service.ndwiLayer")}</span>
               </div>
               <span className="layer-badge">Soon</span>
             </button>
@@ -197,7 +199,7 @@ export default function ServiceLeftNav({
             <button type="button" className="layer-item disabled" disabled>
               <div className="layer-left">
                 <Sprout size={18} />
-                <span>Crop Classification</span>
+                <span>{t("service.eviLayer")}</span>
               </div>
               <span className="layer-badge">Soon</span>
             </button>
@@ -231,7 +233,7 @@ export default function ServiceLeftNav({
         {/* 2. BOTTOM SECTION: REGISTERED LANDS */}
         <div className="user-lands-section" style={{ marginTop: 0 }}>
           <div className="section-label">
-            <span>Registered Lands ({lands.length})</span>
+            <span>{t("service.landsTitle")} ({lands.length})</span>
             {/* The ONLY way to register a land is via this +New button */}
             <button
               type="button"
@@ -253,7 +255,7 @@ export default function ServiceLeftNav({
               }}
             >
               <Plus size={13} />
-              <span>New</span>
+              <span>{t("lands.registerNewBtn")}</span>
             </button>
           </div>
 
@@ -276,10 +278,10 @@ export default function ServiceLeftNav({
               </div>
               <div>
                 <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#F8FAFC" }}>
-                  No Lands Registered
+                  {t("service.noLandsFound")}
                 </div>
                 <div style={{ fontSize: "0.74rem", color: "#94A3B8", marginTop: "2px" }}>
-                  Draw and register your farm parcel to unlock automated Sentinel-2 NDVI monitoring.
+                  {t("service.noLandsDesc")}
                 </div>
               </div>
               <button
@@ -287,8 +289,8 @@ export default function ServiceLeftNav({
                 className="cta-register-btn"
                 onClick={onNavigateToRegisterLand}
               >
-                <span>Register Your First Land</span>
-                <ArrowRight size={15} />
+                <span>{t("service.registerLandBtn")}</span>
+                <ArrowRight size={15} className="icon-flip" />
               </button>
             </div>
           ) : (
@@ -344,8 +346,9 @@ export default function ServiceLeftNav({
                         }
                         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
                         const sidebarEl = document.querySelector(".service-sidebar");
-                        const sidebarRight = sidebarEl ? sidebarEl.getBoundingClientRect().right : rect.right + 12;
-                        const left = sidebarRight + 8;
+                        const left = isRTL
+                          ? (sidebarEl ? sidebarEl.getBoundingClientRect().left - 238 : rect.left - 238)
+                          : (sidebarEl ? sidebarEl.getBoundingClientRect().right + 8 : rect.right + 12);
                         const top = Math.min(Math.max(12, rect.top - 8), window.innerHeight - 190);
 
                         setDropdownState({
@@ -439,7 +442,7 @@ export default function ServiceLeftNav({
                 letterSpacing: "0.08em",
               }}
             >
-              Parcel Actions
+              {t("common.actions")}
             </div>
             <div
               style={{
@@ -462,7 +465,7 @@ export default function ServiceLeftNav({
             style={{
               width: "100%",
               padding: "9px 14px",
-              textAlign: "left",
+              textAlign: isRTL ? "right" : "left",
               display: "flex",
               alignItems: "center",
               gap: "10px",
@@ -489,7 +492,7 @@ export default function ServiceLeftNav({
             }}
           >
             <FileText size={16} style={{ color: "#10B981", flexShrink: 0 }} />
-            <span>Land details</span>
+            <span>{t("common.viewDetails")}</span>
           </button>
 
           {/* 2. Alert Options */}
@@ -498,7 +501,7 @@ export default function ServiceLeftNav({
             style={{
               width: "100%",
               padding: "9px 14px",
-              textAlign: "left",
+              textAlign: isRTL ? "right" : "left",
               display: "flex",
               alignItems: "center",
               gap: "10px",
@@ -525,7 +528,7 @@ export default function ServiceLeftNav({
             }}
           >
             <Sliders size={16} style={{ color: "#F59E0B", flexShrink: 0 }} />
-            <span>Alert Options</span>
+            <span>{t("alertOptions.title")}</span>
           </button>
 
           {/* 3. Register new crop */}
@@ -534,7 +537,7 @@ export default function ServiceLeftNav({
             style={{
               width: "100%",
               padding: "9px 14px",
-              textAlign: "left",
+              textAlign: isRTL ? "right" : "left",
               display: "flex",
               alignItems: "center",
               gap: "10px",
@@ -563,7 +566,7 @@ export default function ServiceLeftNav({
             }}
           >
             <Sprout size={16} style={{ color: "#34D399", flexShrink: 0 }} />
-            <span>Register new crop</span>
+            <span>{t("landDetails.registerCropBtn")}</span>
           </button>
         </div>,
         document.body
