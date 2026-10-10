@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
   Activity,
@@ -54,17 +55,44 @@ export default function ServiceLeftNav({
   isLoggedIn,
 }: ServiceLeftNavProps) {
   const router = useRouter();
-  const [activeDropdownLandId, setActiveDropdownLandId] = useState<number | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+  const [dropdownState, setDropdownState] = useState<{
+    land: Land;
+    top: number;
+    left: number;
+  } | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setActiveDropdownLandId(null);
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        const target = e.target as HTMLElement;
+        if (target.closest(".land-options-btn")) {
+          return;
+        }
+        setDropdownState(null);
       }
     };
-    document.addEventListener("click", handleOutsideClick);
-    return () => document.removeEventListener("click", handleOutsideClick);
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  // Close dropdown on window resize or when scrolling
+  useEffect(() => {
+    const handleScrollOrResize = () => {
+      setDropdownState(null);
+    };
+    window.addEventListener("scroll", handleScrollOrResize, true);
+    window.addEventListener("resize", handleScrollOrResize);
+    return () => {
+      window.removeEventListener("scroll", handleScrollOrResize, true);
+      window.removeEventListener("resize", handleScrollOrResize);
+    };
   }, []);
   return (
     <aside className="service-sidebar">
@@ -299,172 +327,55 @@ export default function ServiceLeftNav({
                         </div>
                         <div style={{ fontSize: "0.72rem", color: "#64748B" }}>
                           {land.area_hectares != null ? formatAreaKm2(land.area_hectares) : "Polygon"}
-                          {land.location ? ` &bull; ${land.location}` : ""}
+                          {land.location ? ` • ${land.location}` : ""}
                         </div>
                       </div>
                     </div>
 
-                    {/* Options: Vertical Ellipsis Dropdown with 3 actions */}
-                    <div style={{ position: "relative" }} ref={dropdownRef}>
-                      <button
-                        type="button"
-                        className="land-options-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveDropdownLandId(
-                            activeDropdownLandId === land.id ? null : land.id
-                          );
-                        }}
-                        title="Land options"
-                        style={{
-                          padding: "6px 8px",
-                          borderRadius: "6px",
-                          backgroundColor:
-                            activeDropdownLandId === land.id
-                              ? "rgba(16, 185, 129, 0.2)"
-                              : "transparent",
-                          color:
-                            activeDropdownLandId === land.id
-                              ? "#10B981"
-                              : "#94A3B8",
-                          border: "none",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <MoreVertical size={16} />
-                      </button>
+                    {/* Options: Vertical Ellipsis Button */}
+                    <button
+                      type="button"
+                      className="land-options-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (dropdownState?.land.id === land.id) {
+                          setDropdownState(null);
+                          return;
+                        }
+                        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                        const sidebarEl = document.querySelector(".service-sidebar");
+                        const sidebarRight = sidebarEl ? sidebarEl.getBoundingClientRect().right : rect.right + 12;
+                        const left = sidebarRight + 8;
+                        const top = Math.min(Math.max(12, rect.top - 8), window.innerHeight - 190);
 
-                      {/* Dropdown Menu (3 actions) */}
-                      {activeDropdownLandId === land.id && (
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: "100%",
-                            right: 0,
-                            marginTop: "4px",
-                            width: "220px",
-                            backgroundColor: "#0B132B",
-                            border: "1px solid rgba(255, 255, 255, 0.12)",
-                            borderRadius: "8px",
-                            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.7)",
-                            zIndex: 100,
-                            overflow: "hidden",
-                            padding: "4px 0",
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {/* 1. Land details */}
-                          <button
-                            type="button"
-                            style={{
-                              width: "100%",
-                              padding: "9px 12px",
-                              textAlign: "left",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "8px",
-                              backgroundColor: "transparent",
-                              border: "none",
-                              color: "#E2E8F0",
-                              fontSize: "0.82rem",
-                              fontWeight: 600,
-                              cursor: "pointer",
-                              transition: "background 0.15s ease",
-                            }}
-                            onMouseEnter={(e) =>
-                              (e.currentTarget.style.backgroundColor =
-                                "rgba(16, 185, 129, 0.15)")
-                            }
-                            onMouseLeave={(e) =>
-                              (e.currentTarget.style.backgroundColor =
-                                "transparent")
-                            }
-                            onClick={() => {
-                              setActiveDropdownLandId(null);
-                              router.push(`/lands/landdetails?land_id=${land.id}`);
-                            }}
-                          >
-                            <FileText size={15} style={{ color: "#10B981" }} />
-                            <span>Land details</span>
-                          </button>
-
-                          {/* 2. Alert Options */}
-                          <button
-                            type="button"
-                            style={{
-                              width: "100%",
-                              padding: "9px 12px",
-                              textAlign: "left",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "8px",
-                              backgroundColor: "transparent",
-                              border: "none",
-                              color: "#E2E8F0",
-                              fontSize: "0.82rem",
-                              fontWeight: 600,
-                              cursor: "pointer",
-                              transition: "background 0.15s ease",
-                            }}
-                            onMouseEnter={(e) =>
-                              (e.currentTarget.style.backgroundColor =
-                                "rgba(16, 185, 129, 0.15)")
-                            }
-                            onMouseLeave={(e) =>
-                              (e.currentTarget.style.backgroundColor =
-                                "transparent")
-                            }
-                            onClick={() => {
-                              setActiveDropdownLandId(null);
-                              router.push(`/lands/AlertOptions?land_id=${land.id}`);
-                            }}
-                          >
-                            <Sliders size={15} style={{ color: "#F59E0B" }} />
-                            <span>Alert Options</span>
-                          </button>
-
-                          {/* 3. Register a new crop for the land */}
-                          <button
-                            type="button"
-                            style={{
-                              width: "100%",
-                              padding: "9px 12px",
-                              textAlign: "left",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "8px",
-                              backgroundColor: "transparent",
-                              border: "none",
-                              color: "#E2E8F0",
-                              fontSize: "0.82rem",
-                              fontWeight: 600,
-                              cursor: "pointer",
-                              transition: "background 0.15s ease",
-                            }}
-                            onMouseEnter={(e) =>
-                              (e.currentTarget.style.backgroundColor =
-                                "rgba(16, 185, 129, 0.15)")
-                            }
-                            onMouseLeave={(e) =>
-                              (e.currentTarget.style.backgroundColor =
-                                "transparent")
-                            }
-                            onClick={() => {
-                              setActiveDropdownLandId(null);
-                              if (onOpenCropRegistration) {
-                                onOpenCropRegistration(land);
-                              }
-                            }}
-                          >
-                            <Sprout size={15} style={{ color: "#34D399" }} />
-                            <span>Register new crop</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                        setDropdownState({
+                          land,
+                          top,
+                          left,
+                        });
+                      }}
+                      title="Land options"
+                      style={{
+                        padding: "6px 8px",
+                        borderRadius: "6px",
+                        backgroundColor:
+                          dropdownState?.land.id === land.id
+                            ? "rgba(16, 185, 129, 0.2)"
+                            : "transparent",
+                        color:
+                          dropdownState?.land.id === land.id
+                            ? "#10B981"
+                            : "#94A3B8",
+                        border: "none",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <MoreVertical size={16} />
+                    </button>
                   </div>
                 );
               })}
@@ -485,12 +396,178 @@ export default function ServiceLeftNav({
               {activeAlerts[0].message}
             </div>
             <div style={{ fontSize: "0.72rem", color: "#B45309" }}>
-              Severity: {activeAlerts[0].severity.toUpperCase()} &bull;{" "}
+              Severity: {activeAlerts[0].severity.toUpperCase()} •{" "}
               {new Date(activeAlerts[0].triggered_at).toLocaleDateString()}
             </div>
           </div>
         </div>
       ) : null}
+
+      {/* 4. FLOATING OPTIONS OVERLAY: Rendered via portal to overlay the map on the right */}
+      {mounted && dropdownState && createPortal(
+        <div
+          ref={menuRef}
+          style={{
+            position: "fixed",
+            top: dropdownState.top,
+            left: dropdownState.left,
+            width: "230px",
+            backgroundColor: "rgba(11, 19, 43, 0.96)",
+            border: "1px solid rgba(255, 255, 255, 0.14)",
+            borderRadius: "10px",
+            boxShadow: "0 16px 36px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(16, 185, 129, 0.25)",
+            zIndex: 99999,
+            overflow: "hidden",
+            padding: "6px 0",
+            backdropFilter: "blur(14px)",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div
+            style={{
+              padding: "6px 14px 8px 14px",
+              borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+              marginBottom: "4px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "0.68rem",
+                fontWeight: 800,
+                color: "#10B981",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+              }}
+            >
+              Parcel Actions
+            </div>
+            <div
+              style={{
+                fontSize: "0.85rem",
+                fontWeight: 700,
+                color: "#F8FAFC",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                marginTop: "2px",
+              }}
+            >
+              {dropdownState.land.name}
+            </div>
+          </div>
+
+          {/* 1. Land details */}
+          <button
+            type="button"
+            style={{
+              width: "100%",
+              padding: "9px 14px",
+              textAlign: "left",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              backgroundColor: "transparent",
+              border: "none",
+              color: "#E2E8F0",
+              fontSize: "0.84rem",
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "rgba(16, 185, 129, 0.15)";
+              e.currentTarget.style.color = "#10B981";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = "#E2E8F0";
+            }}
+            onClick={() => {
+              const id = dropdownState.land.id;
+              setDropdownState(null);
+              router.push(`/lands/landdetails?land_id=${id}`);
+            }}
+          >
+            <FileText size={16} style={{ color: "#10B981", flexShrink: 0 }} />
+            <span>Land details</span>
+          </button>
+
+          {/* 2. Alert Options */}
+          <button
+            type="button"
+            style={{
+              width: "100%",
+              padding: "9px 14px",
+              textAlign: "left",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              backgroundColor: "transparent",
+              border: "none",
+              color: "#E2E8F0",
+              fontSize: "0.84rem",
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "rgba(245, 158, 11, 0.15)";
+              e.currentTarget.style.color = "#F59E0B";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = "#E2E8F0";
+            }}
+            onClick={() => {
+              const id = dropdownState.land.id;
+              setDropdownState(null);
+              router.push(`/lands/AlertOptions?land_id=${id}`);
+            }}
+          >
+            <Sliders size={16} style={{ color: "#F59E0B", flexShrink: 0 }} />
+            <span>Alert Options</span>
+          </button>
+
+          {/* 3. Register new crop */}
+          <button
+            type="button"
+            style={{
+              width: "100%",
+              padding: "9px 14px",
+              textAlign: "left",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              backgroundColor: "transparent",
+              border: "none",
+              color: "#E2E8F0",
+              fontSize: "0.84rem",
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "rgba(52, 211, 153, 0.15)";
+              e.currentTarget.style.color = "#34D399";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = "#E2E8F0";
+            }}
+            onClick={() => {
+              const land = dropdownState.land;
+              setDropdownState(null);
+              if (onOpenCropRegistration) {
+                onOpenCropRegistration(land);
+              }
+            }}
+          >
+            <Sprout size={16} style={{ color: "#34D399", flexShrink: 0 }} />
+            <span>Register new crop</span>
+          </button>
+        </div>,
+        document.body
+      )}
     </aside>
   );
 }
