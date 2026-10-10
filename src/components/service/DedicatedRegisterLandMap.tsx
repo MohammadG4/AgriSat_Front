@@ -75,7 +75,7 @@ export default function DedicatedRegisterLandMap() {
     try {
       if (mapboxgl.getRTLTextPluginStatus() === "unavailable") {
         mapboxgl.setRTLTextPlugin(
-          "https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js",
+          "https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.3.0/mapbox-gl-rtl-text.js",
           null,
           true
         );
@@ -126,7 +126,6 @@ export default function DedicatedRegisterLandMap() {
               map.setLayoutProperty(layer.id, "text-field", [
                 "coalesce",
                 ["get", "name_ar"],
-                ["get", "name_en"],
                 ["get", "name"],
               ]);
             } catch {
