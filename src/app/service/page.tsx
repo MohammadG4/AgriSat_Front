@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import {
   getLandsApi,
@@ -9,13 +10,15 @@ import {
   getLandSatelliteDataApi,
   getToken,
 } from "@/lib/api";
-import { Land } from "@/types/farm";
+import { Land, VegetationIndexSet } from "@/types/farm";
 import { AlertNotification } from "@/types/alert";
 
 import ServiceLeftNav from "@/components/service/ServiceLeftNav";
 import UpdateLandModal from "@/components/service/UpdateLandModal";
 import AlertScenarioTuneModal from "@/components/service/AlertScenarioTuneModal";
 import GlobalAlertsModal from "@/components/service/GlobalAlertsModal";
+import CropRegistrationModal from "@/components/service/CropRegistrationModal";
+import FeatureDetailsPanel from "@/components/service/FeatureDetailsPanel";
 import "@/components/service/service.css";
 
 // Dynamic import with SSR disabled for Mapbox GL WebGL context
@@ -42,13 +45,16 @@ const MapboxServiceMap = dynamic(
 );
 
 export default function ServicePage() {
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, isLoading } = useAuth();
   const [lands, setLands] = useState<Land[]>([]);
   const [selectedLand, setSelectedLand] = useState<Land | null>(null);
 
   // Satellite Data & Overlay State
   const [hasSatelliteData, setHasSatelliteData] = useState<boolean>(false);
   const [overlayActive, setOverlayActive] = useState<boolean>(false);
+  const [satelliteData, setSatelliteData] = useState<VegetationIndexSet[]>([]);
+  const [isFeatureDetailsOpen, setIsFeatureDetailsOpen] = useState<boolean>(false);
 
   // Alerts State
   const [activeAlerts, setActiveAlerts] = useState<AlertNotification[]>([]);
@@ -58,9 +64,17 @@ export default function ServicePage() {
   const [editingLand, setEditingLand] = useState<Land | null>(null);
   const [tuningLand, setTuningLand] = useState<Land | null>(null);
   const [showGlobalAlerts, setShowGlobalAlerts] = useState<boolean>(false);
+  const [cropRegistrationLand, setCropRegistrationLand] = useState<Land | null>(null);
 
   // Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Auth Route Protection
+  useEffect(() => {
+    if (!isLoading && !user && !getToken()) {
+      router.replace("/login");
+    }
+  }, [user, isLoading, router]);
 
   // Fetch all user lands
   const fetchLands = useCallback(async () => {
@@ -127,6 +141,7 @@ export default function ServicePage() {
       limit: 50,
     })
       .then((satData) => {
+        setSatelliteData(satData || []);
         if (!satData || satData.length === 0) {
           // If the request returns no data: deactivate the NDVI overlay button (false)
           setHasSatelliteData(false);
@@ -137,6 +152,7 @@ export default function ServicePage() {
         }
       })
       .catch(() => {
+        setSatelliteData([]);
         setHasSatelliteData(false);
         setOverlayActive(false);
       });
@@ -188,8 +204,41 @@ export default function ServicePage() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
+  const handleToggleFeatureDetails = () => {
+    setIsFeatureDetailsOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setTimeout(() => {
+          document
+            .getElementById("feature-details-section")
+            ?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      }
+      return next;
+    });
+  };
+
+  if (isLoading || (!user && !getToken())) {
+    return (
+      <div
+        style={{
+          width: "100vw",
+          height: "calc(100vh - 70px)",
+          backgroundColor: "#070B12",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#10B981",
+          fontSize: "0.95rem",
+        }}
+      >
+        Authenticating session...
+      </div>
+    );
+  }
+
   return (
-    <div className="service-container">
+    <div className="service-page-wrapper">
       {/* Toast Notification */}
       {toastMessage && (
         <div
@@ -213,30 +262,45 @@ export default function ServicePage() {
         </div>
       )}
 
-      {/* 1. Left Navigation Sidebar */}
-      <ServiceLeftNav
-        lands={lands}
-        selectedLand={selectedLand}
-        onSelectLand={(land) => setSelectedLand(land)}
-        onOpenOptionsModal={(land) => setEditingLand(land)}
-        onOpenGlobalAlerts={() => setShowGlobalAlerts(true)}
-        onNavigateToRegisterLand={handleOpenRegisterPage}
-        activeAlerts={activeAlerts}
-        totalAlertsCount={totalAlertsCount}
-        isLoggedIn={!!user}
-      />
+      {/* Main Map & Left Nav Section */}
+      <div className="service-container">
+        {/* 1. Left Navigation Sidebar */}
+        <ServiceLeftNav
+          lands={lands}
+          selectedLand={selectedLand}
+          onSelectLand={(land) => setSelectedLand(land)}
+          onOpenOptionsModal={(land) => setEditingLand(land)}
+          onOpenGlobalAlerts={() => setShowGlobalAlerts(true)}
+          onNavigateToRegisterLand={handleOpenRegisterPage}
+          onOpenCropRegistration={(land) => setCropRegistrationLand(land)}
+          onToggleFeatureDetails={handleToggleFeatureDetails}
+          isFeatureDetailsOpen={isFeatureDetailsOpen}
+          activeAlerts={activeAlerts}
+          totalAlertsCount={totalAlertsCount}
+          isLoggedIn={!!user}
+        />
 
-      {/* 2. Read-Only Visuals Mapbox Viewport */}
-      <MapboxServiceMap
-        lands={lands}
-        selectedLand={selectedLand}
-        onSelectLand={(land) => setSelectedLand(land)}
-        hasSatelliteData={hasSatelliteData}
-        overlayActive={overlayActive}
-        onToggleOverlay={() => setOverlayActive((prev) => !prev)}
-      />
+        {/* 2. Read-Only Visuals Mapbox Viewport */}
+        <MapboxServiceMap
+          lands={lands}
+          selectedLand={selectedLand}
+          onSelectLand={(land) => setSelectedLand(land)}
+          hasSatelliteData={hasSatelliteData}
+          overlayActive={overlayActive}
+          onToggleOverlay={() => setOverlayActive((prev) => !prev)}
+        />
+      </div>
 
-      {/* 3. Land Details Options Modal (Excludes border edits and deletions) */}
+      {/* 3. Feature Details UI Extension (Extends downward when NDVI feature is clicked) */}
+      {isFeatureDetailsOpen && selectedLand && (
+        <FeatureDetailsPanel
+          land={selectedLand}
+          satelliteData={satelliteData}
+          onClose={() => setIsFeatureDetailsOpen(false)}
+        />
+      )}
+
+      {/* 4. Land Details Options Modal */}
       {editingLand && (
         <UpdateLandModal
           land={editingLand}
@@ -249,7 +313,21 @@ export default function ServicePage() {
         />
       )}
 
-      {/* 4. Tune Alert Scenarios Modal */}
+      {/* 5. Crop Registration Modal (Opened from ellipsis menu or history) */}
+      {cropRegistrationLand && (
+        <CropRegistrationModal
+          landId={cropRegistrationLand.id}
+          landName={cropRegistrationLand.name}
+          onClose={() => setCropRegistrationLand(null)}
+          onSuccess={(crop) => {
+            setCropRegistrationLand(null);
+            setToastMessage(`Crop "${crop.crop_name}" registered for land "${cropRegistrationLand.name}".`);
+            setTimeout(() => setToastMessage(null), 4000);
+          }}
+        />
+      )}
+
+      {/* 6. Tune Alert Scenarios Modal */}
       {tuningLand && (
         <AlertScenarioTuneModal
           land={tuningLand}
@@ -257,7 +335,7 @@ export default function ServicePage() {
         />
       )}
 
-      {/* 5. Global Alerts Modal */}
+      {/* 7. Global Alerts Modal */}
       {showGlobalAlerts && (
         <GlobalAlertsModal
           lands={lands}

@@ -1,6 +1,6 @@
 import { User, LoginResponse, RegisterPayload } from "@/types/auth";
-import { Land, LandCreatePayload, Crop, CropOnLand, VegetationIndexSet } from "@/types/farm";
-import { AlertScenario, AlertScenarioCreatePayload, AlertNotification } from "@/types/alert";
+import { Land, LandCreatePayload, Crop, CropOnLand, VegetationIndexSet, CropCreatePayload, CropUpdatePayload } from "@/types/farm";
+import { AlertScenario, AlertScenarioCreatePayload, AlertScenarioUpdatePayload, AlertNotification } from "@/types/alert";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
@@ -185,13 +185,7 @@ export async function getLandCropsApi(token: string, landId: number): Promise<Cr
 export async function plantCropOnLandApi(
   token: string,
   landId: number,
-  payload: {
-    land_id: number;
-    crop_id: number;
-    planting_date: string;
-    harvest_date?: string;
-    season?: string;
-  }
+  payload: CropCreatePayload
 ): Promise<any> {
   const response = await fetch(`${API_BASE_URL}/api/v1/farms/lands/${landId}/crops`, {
     method: "POST",
@@ -335,6 +329,124 @@ export async function getTriggeredAlertsApi(
   }
 
   return response.json();
+}
+
+export async function deleteLandApi(
+  token: string,
+  landId: number
+): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/farms/lands/${landId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || `Failed to delete land #${landId}.`);
+  }
+}
+
+export async function updateCropOnLandApi(
+  token: string,
+  landId: number,
+  payload: CropUpdatePayload
+): Promise<CropOnLand> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/farms/lands/${landId}/crops`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to update crop details.");
+  }
+
+  return response.json();
+}
+
+export async function deleteCropFromLandApi(
+  token: string,
+  landId: number,
+  cropInstanceId: number
+): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/farms/lands/${landId}/crops/${cropInstanceId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to delete crop record.");
+  }
+}
+
+export async function updateAlertScenarioApi(
+  token: string,
+  scenarioId: number,
+  payload: AlertScenarioUpdatePayload
+): Promise<AlertScenario> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/alerts/scenarios/${scenarioId}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to update alert scenario.");
+  }
+
+  return response.json();
+}
+
+export async function bulkUpdateAlertScenariosApi(
+  token: string,
+  landId: number,
+  isActive: boolean
+): Promise<AlertScenario[]> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/alerts/scenarios/bulk`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ land_id: landId, is_active: isActive }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to update alert scenarios status.");
+  }
+
+  return response.json();
+}
+
+export async function deleteAlertScenarioApi(
+  token: string,
+  scenarioId: number
+): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/alerts/scenarios/${scenarioId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to delete alert scenario.");
+  }
 }
 
 export { API_BASE_URL };

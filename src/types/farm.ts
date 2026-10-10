@@ -15,6 +15,7 @@ export interface Land {
   image_url?: string | null;
   boundary: GeoJsonPolygon;
   area_hectares?: number | null;
+  area_km2?: number | null;
   created_date: string;
   last_updated: string;
 }
@@ -53,6 +54,31 @@ export interface CropOnLand {
   planting_date: string;
   harvest_date?: string | null;
   season?: string | null;
+  status?: string;
+  expected_harvest_date?: string | null;
+  actual_harvest_date?: string | null;
+}
+
+export interface CropCreatePayload {
+  land_id: number;
+  crop_id: number;
+  planting_date: string;
+  harvest_date?: string | null;
+  season?: string | null;
+  status?: string;
+  expected_harvest_date?: string | null;
+  actual_harvest_date?: string | null;
+}
+
+export interface CropUpdatePayload {
+  instance_id?: number;
+  crop_id?: number;
+  planting_date?: string;
+  harvest_date?: string | null;
+  season?: string | null;
+  status?: string;
+  expected_harvest_date?: string | null;
+  actual_harvest_date?: string | null;
 }
 
 export interface VegetationIndexSet {

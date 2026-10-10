@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { X, Layers, CheckCircle, AlertCircle, Sparkles } from "lucide-react";
 import { GeoJsonPolygon, Land, LandCreatePayload } from "@/types/farm";
 import { createLandApi, createAlertScenarioApi, getToken } from "@/lib/api";
-import { calculatePolygonAreaHectares } from "./geoUtils";
+import { calculatePolygonAreaKm2, formatAreaKm2 } from "./geoUtils";
 
 interface CreateLandModalProps {
   boundary: GeoJsonPolygon | null;
@@ -28,9 +28,9 @@ export default function CreateLandModal({
 
   if (!boundary) return null;
 
-  // Estimate area in hectares
+  // Estimate area in km2
   const coords = boundary.coordinates[0] || [];
-  const approxHectares = calculatePolygonAreaHectares(coords);
+  const approxKm2 = calculatePolygonAreaKm2(coords);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,7 +139,7 @@ export default function CreateLandModal({
                 Register New Land Parcel
               </div>
               <div style={{ fontSize: "0.75rem", color: "#64748B" }}>
-                Mapbox Polygon &bull; Approx. {approxHectares} Hectares
+                Mapbox Polygon &bull; Approx. {formatAreaKm2(approxKm2, true)}
               </div>
             </div>
           </div>

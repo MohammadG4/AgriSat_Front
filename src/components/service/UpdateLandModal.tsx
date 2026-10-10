@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { X, Sliders, Settings, AlertCircle, CheckCircle, MapPin } from "lucide-react";
 import { Land, LandUpdatePayload } from "@/types/farm";
 import { updateLandApi, getToken } from "@/lib/api";
+import { formatAreaKm2 } from "./geoUtils";
 
 interface UpdateLandModalProps {
   land: Land;
@@ -85,7 +86,7 @@ export default function UpdateLandModal({
                 Land Options &amp; Details
               </div>
               <div style={{ fontSize: "0.75rem", color: "#64748B" }}>
-                ID: #{land.id} &bull; {land.area_hectares != null ? `${land.area_hectares} ha` : "Polygon"}
+                ID: #{land.id} &bull; {land.area_hectares != null ? formatAreaKm2(land.area_hectares) : "Polygon"}
               </div>
             </div>
           </div>
@@ -205,7 +206,7 @@ export default function UpdateLandModal({
             >
               <div>
                 <span style={{ color: "#F8FAFC", fontWeight: 600 }}>Calculated Area: </span>
-                {land.area_hectares != null ? `${land.area_hectares} hectares` : "N/A"}
+                {land.area_hectares != null ? formatAreaKm2(land.area_hectares) : "N/A"}
               </div>
               <span style={{ fontSize: "0.72rem", color: "#64748B" }}>
                 (Geographic boundaries are locked)

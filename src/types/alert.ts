@@ -35,6 +35,20 @@ export interface AlertScenarioCreatePayload {
   is_active?: boolean;
 }
 
+export interface AlertScenarioUpdatePayload {
+  id?: number;
+  name?: string;
+  description?: string;
+  parameters?: Record<string, any>;
+  severity?: AlertSeverity;
+  is_active?: boolean;
+}
+
+export interface BulkAlertScenarioUpdatePayload {
+  land_id: number;
+  is_active: boolean;
+}
+
 export interface AlertNotification {
   id: number;
   scenario_id: number;

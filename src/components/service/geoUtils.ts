@@ -1,6 +1,6 @@
 // Utility functions for geometry and geocoding
 
-export function calculatePolygonAreaHectares(coords: number[][]): number {
+export function calculatePolygonAreaKm2(coords: number[][]): number {
   if (!coords || coords.length < 3) return 0;
   const radius = 6378137; // Earth's radius in meters
   let area = 0;
@@ -15,7 +15,35 @@ export function calculatePolygonAreaHectares(coords: number[][]): number {
     area += (lon2 - lon1) * (2 + Math.sin(lat1) + Math.sin(lat2));
   }
   area = Math.abs((area * radius * radius) / 2.0);
-  return Number((area / 10000).toFixed(2));
+  // 1 km² = 1,000,000 m²
+  const km2 = area / 1000000.0;
+  return Number(km2.toFixed(4));
+}
+
+export function formatAreaKm2(value?: number | null, isKm2: boolean = false): string {
+  if (value == null || isNaN(value)) return "0.00 km²";
+  const km2 = isKm2 ? value : value / 100.0;
+  if (km2 < 0.01 && km2 > 0) {
+    return `${km2.toFixed(4)} km²`;
+  }
+  return `${km2.toFixed(2)} km²`;
+}
+
+export function calculatePolygonAreaHectares(coords: number[][]): number {
+  return calculatePolygonAreaKm2(coords) * 100;
+}
+
+// Egypt geographical boundary validation (covers Egyptian territory)
+export const EGYPT_BBOX: [[number, number], [number, number]] = [
+  [24.5, 21.8], // Southwest coordinates [lng, lat]
+  [37.0, 32.0], // Northeast coordinates [lng, lat]
+];
+
+export function isPolygonInsideEgypt(coords: number[][]): boolean {
+  if (!coords || coords.length === 0) return false;
+  return coords.every(([lng, lat]) => {
+    return lng >= 24.5 && lng <= 37.0 && lat >= 21.8 && lat <= 32.0;
+  });
 }
 
 export function parseCoordinates(query: string): [number, number] | null {

@@ -142,6 +142,23 @@ export default function Navbar() {
 
           {user && (
             <Link
+              href="/lands"
+              style={{
+                fontSize: "0.9rem",
+                fontWeight: 600,
+                color:
+                  pathname.startsWith("/lands")
+                    ? "var(--primary)"
+                    : "var(--text-muted)",
+                transition: "color 0.15s ease",
+              }}
+            >
+              Your Lands
+            </Link>
+          )}
+
+          {user && (
+            <Link
               href="/profile"
               style={{
                 fontSize: "0.9rem",

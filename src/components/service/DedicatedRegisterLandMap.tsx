@@ -18,10 +18,17 @@ import {
   AlertCircle,
   Sparkles,
   Layers,
+  Compass,
 } from "lucide-react";
 import { GeoJsonPolygon, LandCreatePayload } from "@/types/farm";
 import { createLandApi, createAlertScenarioApi, getToken } from "@/lib/api";
-import { parseCoordinates, calculatePolygonAreaHectares } from "./geoUtils";
+import {
+  parseCoordinates,
+  calculatePolygonAreaKm2,
+  formatAreaKm2,
+  EGYPT_BBOX,
+  isPolygonInsideEgypt,
+} from "./geoUtils";
 
 const DEFAULT_MAPBOX_TOKEN =
   process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ||
@@ -37,6 +44,7 @@ export default function DedicatedRegisterLandMap() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [mapBearing, setMapBearing] = useState(0);
 
   // Boundary & Drawing state
   const [drawnPolygon, setDrawnPolygon] = useState<GeoJsonPolygon | null>(null);
@@ -79,12 +87,18 @@ export default function DedicatedRegisterLandMap() {
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: "mapbox://styles/mapbox/satellite-streets-v12",
-      center: [31.2001, 30.8205],
-      zoom: 12,
-      pitch: 15,
+      center: [30.8025, 28.5],
+      zoom: 7,
+      pitch: 0,
+      bearing: 0,
+      maxBounds: EGYPT_BBOX,
     });
 
     mapRef.current = map;
+
+    map.on("rotate", () => {
+      setMapBearing(Math.round(map.getBearing()));
+    });
 
     // Drawing tools
     const draw = new MapboxDraw({
@@ -123,7 +137,7 @@ export default function DedicatedRegisterLandMap() {
       }
     });
 
-    // Drawing handlers: DO NOT automatically show modal; only save polygon to state
+    // Drawing handlers: save polygon and validate strictly within Egypt
     const handleDrawChange = (e: any) => {
       const allFeatures = draw.getAll();
       if (allFeatures.features.length > 0) {
@@ -133,16 +147,27 @@ export default function DedicatedRegisterLandMap() {
           lastFeature.geometry &&
           lastFeature.geometry.type === "Polygon"
         ) {
-          setDrawnPolygon(lastFeature.geometry as GeoJsonPolygon);
+          const poly = lastFeature.geometry as GeoJsonPolygon;
+          const coords = poly.coordinates[0];
+          if (!isPolygonInsideEgypt(coords)) {
+            setError("Selected land must be strictly within Egyptian territory.");
+          } else {
+            setError(null);
+          }
+          setDrawnPolygon(poly);
         }
       } else {
         setDrawnPolygon(null);
+        setError(null);
       }
     };
 
     map.on("draw.create", handleDrawChange);
     map.on("draw.update", handleDrawChange);
-    map.on("draw.delete", () => setDrawnPolygon(null));
+    map.on("draw.delete", () => {
+      setDrawnPolygon(null);
+      setError(null);
+    });
 
     return () => {
       map.remove();
@@ -227,6 +252,12 @@ export default function DedicatedRegisterLandMap() {
         ring.push([first[0], first[1]]);
       }
 
+      if (!isPolygonInsideEgypt(ring)) {
+        setError("New land boundaries must be strictly within Egyptian territory.");
+        setSubmitting(false);
+        return;
+      }
+
       const payload: LandCreatePayload = {
         name: name.trim(),
         location: location.trim() || undefined,
@@ -289,8 +320,8 @@ export default function DedicatedRegisterLandMap() {
     }
   };
 
-  const approxHectares = drawnPolygon
-    ? calculatePolygonAreaHectares(drawnPolygon.coordinates[0])
+  const approxKm2 = drawnPolygon
+    ? calculatePolygonAreaKm2(drawnPolygon.coordinates[0])
     : 0;
 
   return (
@@ -298,7 +329,7 @@ export default function DedicatedRegisterLandMap() {
       {/* Map Container */}
       <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />
 
-      {/* Top Left: Return Button & Search Bar */}
+      {/* Top Left: Return Button, North Button & Search Bar */}
       <div
         style={{
           position: "absolute",
@@ -321,6 +352,25 @@ export default function DedicatedRegisterLandMap() {
           <span>Back</span>
         </button>
 
+        {/* Compass / North Reset Button */}
+        <button
+          type="button"
+          onClick={() => mapRef.current?.easeTo({ bearing: 0, pitch: 0, duration: 600 })}
+          className="hud-pill hud-btn"
+          title="Reset to True North (0°)"
+          style={{ padding: "10px 14px", display: "flex", alignItems: "center", gap: "6px" }}
+        >
+          <Compass
+            size={17}
+            style={{
+              color: "#10B981",
+              transform: `rotate(${-mapBearing}deg)`,
+              transition: "transform 0.2s ease-out",
+            }}
+          />
+          <span>North {mapBearing !== 0 ? `(${mapBearing}°)` : ""}</span>
+        </button>
+
         {/* Search Bar */}
         <div className="map-search-container" style={{ width: "380px" }}>
           <div className="map-search-input-wrap">
@@ -328,7 +378,7 @@ export default function DedicatedRegisterLandMap() {
             <input
               type="text"
               className="map-search-input"
-              placeholder="Search location (Arabic/English) or coordinates (lat, lng)..."
+              placeholder="Search location in Egypt (Arabic/English) or coordinates..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -375,9 +425,15 @@ export default function DedicatedRegisterLandMap() {
         <button
           type="button"
           className="registration-continue-fab"
-          onClick={() => setShowDetailsForm(true)}
+          onClick={() => {
+            if (drawnPolygon && !isPolygonInsideEgypt(drawnPolygon.coordinates[0])) {
+              setError("Selected land must be strictly within Egyptian territory.");
+              return;
+            }
+            setShowDetailsForm(true);
+          }}
         >
-          <span>Continue ({approxHectares} ha)</span>
+          <span>Continue ({formatAreaKm2(approxKm2, true)})</span>
           <ArrowRight size={18} />
         </button>
       )}
@@ -407,7 +463,7 @@ export default function DedicatedRegisterLandMap() {
                     Confirm Land Details
                   </div>
                   <div style={{ fontSize: "0.75rem", color: "#64748B" }}>
-                    Area: ~{approxHectares} Hectares &bull; PostGIS Geometry
+                    Area: ~{formatAreaKm2(approxKm2, true)} &bull; PostGIS Geometry
                   </div>
                 </div>
               </div>

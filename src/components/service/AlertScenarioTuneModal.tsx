@@ -26,6 +26,7 @@ import {
   getTriggeredAlertsApi,
   getToken,
 } from "@/lib/api";
+import { formatAreaKm2 } from "./geoUtils";
 
 interface AlertScenarioTuneModalProps {
   land: Land;
@@ -155,7 +156,7 @@ export default function AlertScenarioTuneModal({
                 NDVI Intelligence &amp; Alert Scenarios
               </div>
               <div style={{ fontSize: "0.75rem", color: "#64748B" }}>
-                {land.name} &bull; ID: #{land.id} {land.area_hectares ? `&bull; ${land.area_hectares} ha` : ""}
+                {land.name} &bull; ID: #{land.id} {land.area_hectares ? `&bull; ${formatAreaKm2(land.area_hectares)}` : ""}
               </div>
             </div>
           </div>

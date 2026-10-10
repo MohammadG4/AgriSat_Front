@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   Activity,
   Droplets,
@@ -11,12 +12,17 @@ import {
   AlertTriangle,
   MapPin,
   Plus,
+  MoreVertical,
   SlidersHorizontal,
   Bell,
   ArrowRight,
+  FileText,
+  Sliders,
+  ChevronDown,
 } from "lucide-react";
 import { Land } from "@/types/farm";
 import { AlertNotification } from "@/types/alert";
+import { formatAreaKm2 } from "./geoUtils";
 
 interface ServiceLeftNavProps {
   lands: Land[];
@@ -25,6 +31,9 @@ interface ServiceLeftNavProps {
   onOpenOptionsModal: (land: Land) => void;
   onOpenGlobalAlerts: () => void;
   onNavigateToRegisterLand: () => void;
+  onOpenCropRegistration?: (land: Land) => void;
+  onToggleFeatureDetails?: () => void;
+  isFeatureDetailsOpen?: boolean;
   activeAlerts: AlertNotification[];
   totalAlertsCount: number;
   isLoggedIn: boolean;
@@ -37,10 +46,26 @@ export default function ServiceLeftNav({
   onOpenOptionsModal,
   onOpenGlobalAlerts,
   onNavigateToRegisterLand,
+  onOpenCropRegistration,
+  onToggleFeatureDetails,
+  isFeatureDetailsOpen,
   activeAlerts,
   totalAlertsCount,
   isLoggedIn,
 }: ServiceLeftNavProps) {
+  const router = useRouter();
+  const [activeDropdownLandId, setActiveDropdownLandId] = useState<number | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setActiveDropdownLandId(null);
+      }
+    };
+    document.addEventListener("click", handleOutsideClick);
+    return () => document.removeEventListener("click", handleOutsideClick);
+  }, []);
   return (
     <aside className="service-sidebar">
       <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -103,21 +128,33 @@ export default function ServiceLeftNav({
             <button
               type="button"
               className="layer-item active"
-              title="Crop Health NDVI (Active)"
+              title="Crop Health NDVI (Click to toggle detailed analytics below)"
+              onClick={() => onToggleFeatureDetails?.()}
+              style={{
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
             >
               <div className="layer-left">
                 <Activity size={18} />
                 <span>Health Map (NDVI)</span>
               </div>
-              <span
-                style={{
-                  width: "8px",
-                  height: "8px",
-                  borderRadius: "50%",
-                  backgroundColor: "#10B981",
-                  boxShadow: "0 0 8px #10B981",
-                }}
-              />
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span style={{ fontSize: "0.68rem", color: "#10B981", fontWeight: 700 }}>
+                  {isFeatureDetailsOpen ? "Details ▼" : "Details ▲"}
+                </span>
+                <span
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    backgroundColor: "#10B981",
+                    boxShadow: "0 0 8px #10B981",
+                  }}
+                />
+              </div>
             </button>
 
             {/* Disabled Upcoming Features */}
@@ -261,25 +298,173 @@ export default function ServiceLeftNav({
                           {land.name}
                         </div>
                         <div style={{ fontSize: "0.72rem", color: "#64748B" }}>
-                          {land.area_hectares != null ? `${land.area_hectares} ha` : "Polygon"}
+                          {land.area_hectares != null ? formatAreaKm2(land.area_hectares) : "Polygon"}
                           {land.location ? ` &bull; ${land.location}` : ""}
                         </div>
                       </div>
                     </div>
 
-                    {/* Options button: opens Update details modal (excludes border edits and deletions) */}
-                    <button
-                      type="button"
-                      className="land-options-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onOpenOptionsModal(land);
-                      }}
-                      title="Update land details"
-                    >
-                      <SlidersHorizontal size={13} />
-                      <span>Options</span>
-                    </button>
+                    {/* Options: Vertical Ellipsis Dropdown with 3 actions */}
+                    <div style={{ position: "relative" }} ref={dropdownRef}>
+                      <button
+                        type="button"
+                        className="land-options-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveDropdownLandId(
+                            activeDropdownLandId === land.id ? null : land.id
+                          );
+                        }}
+                        title="Land options"
+                        style={{
+                          padding: "6px 8px",
+                          borderRadius: "6px",
+                          backgroundColor:
+                            activeDropdownLandId === land.id
+                              ? "rgba(16, 185, 129, 0.2)"
+                              : "transparent",
+                          color:
+                            activeDropdownLandId === land.id
+                              ? "#10B981"
+                              : "#94A3B8",
+                          border: "none",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <MoreVertical size={16} />
+                      </button>
+
+                      {/* Dropdown Menu (3 actions) */}
+                      {activeDropdownLandId === land.id && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: "100%",
+                            right: 0,
+                            marginTop: "4px",
+                            width: "220px",
+                            backgroundColor: "#0B132B",
+                            border: "1px solid rgba(255, 255, 255, 0.12)",
+                            borderRadius: "8px",
+                            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.7)",
+                            zIndex: 100,
+                            overflow: "hidden",
+                            padding: "4px 0",
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {/* 1. Land details */}
+                          <button
+                            type="button"
+                            style={{
+                              width: "100%",
+                              padding: "9px 12px",
+                              textAlign: "left",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              backgroundColor: "transparent",
+                              border: "none",
+                              color: "#E2E8F0",
+                              fontSize: "0.82rem",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              transition: "background 0.15s ease",
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.backgroundColor =
+                                "rgba(16, 185, 129, 0.15)")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.backgroundColor =
+                                "transparent")
+                            }
+                            onClick={() => {
+                              setActiveDropdownLandId(null);
+                              router.push(`/lands/landdetails?land_id=${land.id}`);
+                            }}
+                          >
+                            <FileText size={15} style={{ color: "#10B981" }} />
+                            <span>Land details</span>
+                          </button>
+
+                          {/* 2. Alert Options */}
+                          <button
+                            type="button"
+                            style={{
+                              width: "100%",
+                              padding: "9px 12px",
+                              textAlign: "left",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              backgroundColor: "transparent",
+                              border: "none",
+                              color: "#E2E8F0",
+                              fontSize: "0.82rem",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              transition: "background 0.15s ease",
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.backgroundColor =
+                                "rgba(16, 185, 129, 0.15)")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.backgroundColor =
+                                "transparent")
+                            }
+                            onClick={() => {
+                              setActiveDropdownLandId(null);
+                              router.push(`/lands/AlertOptions?land_id=${land.id}`);
+                            }}
+                          >
+                            <Sliders size={15} style={{ color: "#F59E0B" }} />
+                            <span>Alert Options</span>
+                          </button>
+
+                          {/* 3. Register a new crop for the land */}
+                          <button
+                            type="button"
+                            style={{
+                              width: "100%",
+                              padding: "9px 12px",
+                              textAlign: "left",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              backgroundColor: "transparent",
+                              border: "none",
+                              color: "#E2E8F0",
+                              fontSize: "0.82rem",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              transition: "background 0.15s ease",
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.backgroundColor =
+                                "rgba(16, 185, 129, 0.15)")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.backgroundColor =
+                                "transparent")
+                            }
+                            onClick={() => {
+                              setActiveDropdownLandId(null);
+                              if (onOpenCropRegistration) {
+                                onOpenCropRegistration(land);
+                              }
+                            }}
+                          >
+                            <Sprout size={15} style={{ color: "#34D399" }} />
+                            <span>Register new crop</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}

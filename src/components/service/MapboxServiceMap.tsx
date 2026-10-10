@@ -9,9 +9,10 @@ import {
   Layers,
   MapPin,
   HelpCircle,
+  Compass,
 } from "lucide-react";
 import { Land } from "@/types/farm";
-import { parseCoordinates, getPolygonCenter } from "./geoUtils";
+import { parseCoordinates, getPolygonCenter, formatAreaKm2, EGYPT_BBOX } from "./geoUtils";
 
 interface MapboxServiceMapProps {
   lands: Land[];
@@ -42,6 +43,7 @@ export default function MapboxServiceMap({
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [mapBearing, setMapBearing] = useState(0);
 
   // Initialize Read-Only Visuals Mapbox
   useEffect(() => {
@@ -67,16 +69,22 @@ export default function MapboxServiceMap({
       // already registered
     }
 
-    // Default center on agricultural Delta region (Egypt: 31.2, 30.8)
+    // Default center on agricultural Delta region (Egypt), flat horizontal top-down view (pitch: 0), strictly bounded to Egypt
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: "mapbox://styles/mapbox/satellite-streets-v12",
-      center: [31.2001, 30.8205],
-      zoom: 11,
-      pitch: 20,
+      center: [31.2001, 30.0444],
+      zoom: 8,
+      pitch: 0,
+      bearing: 0,
+      maxBounds: EGYPT_BBOX,
     });
 
     mapRef.current = map;
+
+    map.on("rotate", () => {
+      setMapBearing(Math.round(map.getBearing()));
+    });
 
     // Map Load events
     map.on("load", () => {
@@ -304,7 +312,7 @@ export default function MapboxServiceMap({
         const res = await fetch(
           `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
             trimmed
-          )}.json?access_token=${token}&language=ar,en&types=place,locality,neighborhood,address,poi,region,country`
+          )}.json?access_token=${token}&country=eg&language=ar,en&types=place,locality,neighborhood,address,poi,region,country`
         );
         const data = await res.json();
         setSearchResults(data.features || []);
@@ -323,11 +331,21 @@ export default function MapboxServiceMap({
       map.flyTo({
         center: item.center,
         zoom: 13,
+        pitch: 0,
+        bearing: 0,
         duration: 1800,
       });
       setSearchResults([]);
       setSearchQuery(item.place_name_ar || item.place_name);
     }
+  };
+
+  const handleResetNorth = () => {
+    mapRef.current?.easeTo({
+      bearing: 0,
+      pitch: 0,
+      duration: 600,
+    });
   };
 
   return (
@@ -344,7 +362,7 @@ export default function MapboxServiceMap({
             <input
               type="text"
               className="map-search-input"
-              placeholder="Search location (Arabic/English) or coordinates (lat, lng)..."
+              placeholder="Search location in Egypt (Arabic/English) or coordinates..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -385,6 +403,36 @@ export default function MapboxServiceMap({
 
         {/* Top Right Floating HUD Pills */}
         <div className="top-hud-group">
+          {/* Compass / North Reset Button */}
+          <button
+            type="button"
+            className="hud-pill"
+            onClick={handleResetNorth}
+            title="Reset to True North (0°)"
+            style={{
+              cursor: "pointer",
+              border: "1px solid rgba(16, 185, 129, 0.4)",
+              backgroundColor: "rgba(15, 23, 42, 0.85)",
+              color: "#F8FAFC",
+              display: "flex",
+              alignItems: "center",
+              gap: "7px",
+              padding: "6px 12px",
+            }}
+          >
+            <Compass
+              size={17}
+              style={{
+                color: "#10B981",
+                transform: `rotate(${-mapBearing}deg)`,
+                transition: "transform 0.2s ease-out",
+              }}
+            />
+            <span style={{ fontSize: "0.82rem", fontWeight: 700 }}>
+              North {mapBearing !== 0 ? `(${mapBearing}°)` : ""}
+            </span>
+          </button>
+
           {/* Active Layer Pill */}
           <div className="hud-pill">
             <Layers size={16} style={{ color: "#10B981" }} />
