@@ -57,12 +57,14 @@ export default function MapboxServiceMap({
     mapboxgl.accessToken = token;
 
     // Enable integrated Mapbox RTL plugin for Arabic language labels
+    // IMPORTANT: lazy = false (eager load) ensures RTL glyphs are shaped
+    // correctly from the very first render frame, preventing the flash-then-disappear behavior.
     try {
       if (mapboxgl.getRTLTextPluginStatus() === "unavailable") {
         mapboxgl.setRTLTextPlugin(
           "https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.3.0/mapbox-gl-rtl-text.js",
           null,
-          true
+          false // eager load — NOT lazy
         );
       }
     } catch {
@@ -86,11 +88,20 @@ export default function MapboxServiceMap({
       setMapBearing(Math.round(map.getBearing()));
     });
 
-    // Map Load events
-    map.on("load", () => {
-      // 1. Force Arabic labels on all text symbol layers (integrated mapbox labeling)
-      const style = map.getStyle();
-      if (style && style.layers) {
+    // ── Arabic label persistence ──────────────────────────────────
+    // The satellite-streets-v12 style streams vector tiles asynchronously.
+    // map.on("load") fires once, but later tile arrivals re-render symbol
+    // layers using the original style (English).  We must re-apply the
+    // Arabic override every time new vector data arrives or the style
+    // finishes loading, with a debounce guard to avoid tight loops.
+    let arabicLabelTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const setArabicLabels = () => {
+      if (arabicLabelTimer) return;                // debounce guard
+      arabicLabelTimer = setTimeout(() => {
+        arabicLabelTimer = null;
+        const style = map.getStyle();
+        if (!style?.layers) return;
         style.layers.forEach((layer) => {
           if (
             layer.type === "symbol" &&
@@ -108,9 +119,21 @@ export default function MapboxServiceMap({
             }
           }
         });
-      }
+      }, 50);
+    };
 
-      // 2. Setup Lands GeoJSON source and fill/line layers (Read-only visuals)
+    // Bind to multiple lifecycle events so Arabic labels survive tile reloads
+    map.on("style.load", setArabicLabels);
+    map.on("sourcedata", setArabicLabels);
+    map.once("idle", setArabicLabels);
+    // ── End Arabic label persistence ──────────────────────────────
+
+    // Map Load events
+    map.on("load", () => {
+      // Apply Arabic labels immediately on first load as well
+      setArabicLabels();
+
+      // Setup Lands GeoJSON source and fill/line layers (Read-only visuals)
       map.addSource("user-lands", {
         type: "geojson",
         data: {
@@ -186,6 +209,7 @@ export default function MapboxServiceMap({
     });
 
     return () => {
+      if (arabicLabelTimer) clearTimeout(arabicLabelTimer);
       map.remove();
     };
   }, []);

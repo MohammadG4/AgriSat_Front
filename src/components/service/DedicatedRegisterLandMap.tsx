@@ -72,12 +72,13 @@ export default function DedicatedRegisterLandMap() {
     mapboxgl.accessToken = token;
 
     // Enable RTL Arabic Text Plugin
+    // IMPORTANT: lazy = false (eager load) so Arabic glyphs render immediately
     try {
       if (mapboxgl.getRTLTextPluginStatus() === "unavailable") {
         mapboxgl.setRTLTextPlugin(
           "https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.3.0/mapbox-gl-rtl-text.js",
           null,
-          true
+          false // eager load — NOT lazy
         );
       }
     } catch {
@@ -100,22 +101,15 @@ export default function DedicatedRegisterLandMap() {
       setMapBearing(Math.round(map.getBearing()));
     });
 
-    // Drawing tools
-    const draw = new MapboxDraw({
-      displayControlsDefault: false,
-      controls: {
-        polygon: true,
-        trash: true,
-      },
-      defaultMode: "draw_polygon", // Automatically activate polygon tool
-    });
-    drawRef.current = draw;
-    map.addControl(draw, "top-right");
+    // ── Arabic label persistence ──────────────────────────────────
+    let arabicLabelTimer: ReturnType<typeof setTimeout> | null = null;
 
-    map.on("load", () => {
-      // 1. Force Arabic labels on text layers
-      const style = map.getStyle();
-      if (style && style.layers) {
+    const setArabicLabels = () => {
+      if (arabicLabelTimer) return;
+      arabicLabelTimer = setTimeout(() => {
+        arabicLabelTimer = null;
+        const style = map.getStyle();
+        if (!style?.layers) return;
         style.layers.forEach((layer) => {
           if (
             layer.type === "symbol" &&
@@ -133,7 +127,29 @@ export default function DedicatedRegisterLandMap() {
             }
           }
         });
-      }
+      }, 50);
+    };
+
+    map.on("style.load", setArabicLabels);
+    map.on("sourcedata", setArabicLabels);
+    map.once("idle", setArabicLabels);
+    // ── End Arabic label persistence ──────────────────────────────
+
+    // Drawing tools
+    const draw = new MapboxDraw({
+      displayControlsDefault: false,
+      controls: {
+        polygon: true,
+        trash: true,
+      },
+      defaultMode: "draw_polygon", // Automatically activate polygon tool
+    });
+    drawRef.current = draw;
+    map.addControl(draw, "top-right");
+
+    map.on("load", () => {
+      // Apply Arabic labels immediately on first load
+      setArabicLabels();
     });
 
     // Drawing handlers: save polygon and validate strictly within Egypt
@@ -169,6 +185,7 @@ export default function DedicatedRegisterLandMap() {
     });
 
     return () => {
+      if (arabicLabelTimer) clearTimeout(arabicLabelTimer);
       map.remove();
     };
   }, []);
